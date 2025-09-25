@@ -1,7 +1,25 @@
 # Kotest Cookbook
 
-A strongly opnionated collection of practical recipes and examples for [Kotest](https://kotest.io/) users. 
+<!-- TOC -->
+* [Assertions](#Assertions)
+  * [Data Classes](#data-classes)
+  * [Json](#json)
+* [Flaky Tests](#flaky-tests)
+  * [Race Conditions](#race-conditions)
+  * [Faulty Assertions](#faulty-assertions)
+<!-- TOC -->
 
+## Assertions
+
+### Data Classes
+
+### Json
+
+## Flaky Tests
+
+### Race Conditions
+
+### Faulty Assertions
 
 ## 🚀 Getting Started
 
