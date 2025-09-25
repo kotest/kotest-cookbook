@@ -4,22 +4,30 @@
 * [Assertions](#Assertions)
   * [Data Classes](#data-classes)
   * [Json](#json)
+  * [Collections](#collections)
 * [Flaky Tests](#flaky-tests)
   * [Race Conditions](#race-conditions)
   * [Faulty Assertions](#faulty-assertions)
+* [Property Testing](#property-testing)
 <!-- TOC -->
 
 ## Assertions
 
+Both `shouldBe` and `shouldNotBe` are Swiss army knives - they will compare anything to anything, but for better results we should be using more specialized tools.
+
 ### Data Classes
 
 ### Json
+
+### Collections
 
 ## Flaky Tests
 
 ### Race Conditions
 
 ### Faulty Assertions
+
+## Property Testing
 
 ## 🚀 Getting Started
 
