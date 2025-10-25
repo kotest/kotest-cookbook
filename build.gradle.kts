@@ -1,5 +1,5 @@
 plugins {
-    kotlin("jvm") version "1.9.20"
+    kotlin("jvm") version "2.2.0"
     `maven-publish`
 }
 
@@ -13,13 +13,13 @@ repositories {
 dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib")
     
-    testImplementation("io.kotest:kotest-runner-junit5:5.8.0")
-    testImplementation("io.kotest:kotest-assertions-core:5.8.0")
-    testImplementation("io.kotest:kotest-property:5.8.0")
+    testImplementation("io.kotest:kotest-runner-junit5:6.0.4")
+    testImplementation("io.kotest:kotest-assertions-core:6.0.4")
+    testImplementation("io.kotest:kotest-property:6.0.4")
 }
 
 kotlin {
-    jvmToolchain(11)
+    jvmToolchain(21)
 }
 
 tasks.withType<Test>().configureEach {

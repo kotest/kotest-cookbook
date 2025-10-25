@@ -58,10 +58,24 @@ It's also a good choice when we need to move quickly and are not overly concerne
 <br/>
 <br/>
 We can also customize `shouldBeEqualUsingFields` to provide non-default matchers for some fields or to ignore them altogether.
-For instance, the following code ignores the timestamp field when comparing two objects:
+Fields such as timestamps, uuids, and auto-generated ids are commonly ignored in such tests.
+For instance, the following code ignores `createdAt` field when comparing two objects:
 
 ```kotlin
+val box = Box(
+    barcode = "123456789",
+    length = 10,
+    width = 5,
+    height = 2,
+    label = "Stuff",
+    createdAt = Instant.ofEpochMilli(123L),
+)
 
+val anotherBox = box.copy(createdAt = Instant.ofEpochMilli(1234L))
+box shouldBeEqualUsingFields {
+  excludedProperties = setOf(Box::createdAt)
+  anotherBox
+}
 ```
 
 ```kotlin

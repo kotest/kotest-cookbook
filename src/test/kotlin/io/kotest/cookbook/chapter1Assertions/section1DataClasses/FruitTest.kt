@@ -2,9 +2,11 @@ package io.kotest.cookbook.chapter1Assertions.section1DataClasses
 
 import io.kotest.cookbook.chapter1Assertions.largeRedSweetApple
 import io.kotest.cookbook.chapter1Assertions.largeRedTartApple
+import io.kotest.cookbook.chapter1Assertions.Fruit
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.equality.shouldBeEqualUsingFields
 import io.kotest.matchers.shouldBe
+
 
 class FruitTest: StringSpec() {
     init {

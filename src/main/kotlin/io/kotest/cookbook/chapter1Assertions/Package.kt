@@ -2,7 +2,7 @@ package io.kotest.cookbook.chapter1Assertions
 
 import java.time.Instant
 
-data class Package(
+data class Box(
     val barcode: String,
     val length: Int,
     val width: Int,
