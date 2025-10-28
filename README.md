@@ -48,7 +48,7 @@ Fields that differ:
  - taste  =>  expected:<"Tart"> but was:<"Sweet">
 ```
 
-So `shouldBeEqualUsingFields` exposes differences in a very readable way. But it does not allow to explain why we expect these values. As such, it is a great choice in situations where such explanations are not needed, su as:
+So `shouldBeEqualUsingFields` exposes differences in a very readable way. But it does not allow to explain why we expect these values. As such, it is a great choice in situations where such explanations are not needed, such as:
 
 * deserialize a message correctly
 * correctly map data from one layer to another
@@ -57,8 +57,8 @@ So `shouldBeEqualUsingFields` exposes differences in a very readable way. But it
 It's also a good choice when we need to move quickly and are not overly concerned about long-term maintainability of the tests.
 <br/>
 <br/>
-We can also customize `shouldBeEqualUsingFields` to provide non-default matchers for some fields or to ignore them altogether.
 Fields such as timestamps, uuids, and auto-generated ids are commonly ignored in such tests.
+To accomplish that, we can customize `shouldBeEqualUsingFields` to provide non-default matchers for some fields or to ignore them altogether.
 For instance, the following code ignores `createdAt` field when comparing two objects:
 
 ```kotlin
@@ -78,7 +78,24 @@ box shouldBeEqualUsingFields {
 }
 ```
 
+Sometimes we need to use a custom comparison logic for some fields.
+For instance, when comparing floating point numbers computed by some calculations, we may want to use a tolerance value, as follows:
+
 ```kotlin
+private val apple = Thing(name = "apple", weight = 1.5)
+private val anotherApple = Thing(name = "apple", weight = 1.501)
+
+apple shouldBeEqualUsingFields {
+  overrideMatchers = mapOf(
+    Thing::weight to matchDoublesWithTolerance(0.01)
+  )
+  anotherApple
+}
+```
+
+While the ability to ignore fields or override field matchers in `shouldBeEqualUsingFields` is definitely handy, we should not overdo it. 
+In such cases it might be easier to just explicitly match the fields we want using the matchers of our choice.
+
 ## Learning Resources
 
 - [Kotest Documentation](https://kotest.io/)
