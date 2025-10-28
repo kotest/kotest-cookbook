@@ -10,6 +10,9 @@
 ## Assertions
 
 There are multiple ways to accomplish most common tasks in Kotest. So let's discuss how they compare, what are their pros and cons, and what trade-offs we should consider when choosing one over another.
+<br/>
+<br/>
+This is similar to multiple similar tools in a toolbox - even though a Swiss Army knife aka `shouldBe` can handle many comparisons, generally we can get better results using more specialized tools.
 
 ### Matching Data Classes
 
@@ -19,7 +22,7 @@ The ubiquitous `shouldBe` does detect the difference between two objects:
 largeRedSweetApple shouldBe largeRedTartApple
 ```
 
-and the output can be easy to grok in the IDE, but less so in CI logs:
+and the output can be easy to grok in the IDE, especially for simple objects with few fields:
 
 ```
 data class diff for io.kotest.cookbook.chapter1Assertions.Fruit
@@ -28,6 +31,9 @@ Expected :Fruit(name=Apple, color=Red, size=Large, taste=Tart)
 Actual   :Fruit(name=Apple, color=Red, size=Large, taste=Sweet)
 ```
 
+If, however, we are comparing complex objects with many fields, this format of output can be time-consuming to parse.
+<br/>
+<br/>
 For more detailed description of the differences for data classes,  
 we can use `shouldBeEqualToComparingFields` and `shouldBeEqualToIgnoringFields` assertions, as follows:
 
@@ -94,7 +100,7 @@ apple shouldBeEqualUsingFields {
 ```
 
 While the ability to ignore fields or override field matchers in `shouldBeEqualUsingFields` is definitely handy, we should not overdo it. 
-In such cases it might be easier to just explicitly match the fields we want using the matchers of our choice.
+There are other ways to march data classes - it might be easier to just explicitly match the fields we want using the matchers of our choice.
 
 ## Learning Resources
 
