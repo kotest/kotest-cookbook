@@ -14,7 +14,7 @@ There are multiple ways to accomplish most common tasks in Kotest. So let's disc
 <br/>
 This is similar to multiple similar tools in a toolbox - even though a Swiss Army knife aka `shouldBe` can handle many comparisons, generally we can get better results using more specialized tools.
 
-### Matching Data Classes
+### Matching Data Classes with `shouldBeEqualUsingFields`
 
 The ubiquitous `shouldBe` does detect the difference between two objects:
 
@@ -100,7 +100,15 @@ apple shouldBeEqualUsingFields {
 ```
 
 While the ability to ignore fields or override field matchers in `shouldBeEqualUsingFields` is definitely handy, we should not overdo it. 
-There are other ways to march data classes - it might be easier to just explicitly match the fields we want using the matchers of our choice.
+While it's totally fine to ignore or override one or two fields, if we find ourselves doing that for many fields, we should start considering other approaches.
+There are multiple ways to match data classes - it might be easier to just explicitly match the fields we want using the matchers of our choice.
+<br/>
+<br/>
+In the next few examples we shall do just that.
+
+### Matching Data Classes with `assertSoftly`
+
+
 
 ## Learning Resources
 
