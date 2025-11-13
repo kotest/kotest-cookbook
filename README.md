@@ -2,7 +2,8 @@
 
 <!-- TOC -->
 * [Assertions](#Assertions)
-  * [Data Classes](#matching-data-classes)
+  * [Data Classes and shouldBeEqualUsingFields](#matching-data-classes-with-shouldbeequalusingfields)
+  * [Data Classes and assertSoftly](#matching-data-classes-with-assertsoftly)
   * [Json](#json)
   * [Collections](#collections)
 <!-- TOC -->
@@ -107,6 +108,46 @@ There are multiple ways to match data classes - it might be easier to just expli
 In the next few examples we shall do just that.
 
 ### Matching Data Classes with `assertSoftly`
+
+Suppose we are working with the following data class:
+
+```kotlin
+data class Box(
+    val barcode: String,
+    val label: String,
+    val length: Int,
+    val width: Int,
+    val height: Int,
+    val createdAt: Instant,
+)
+```
+
+And we need to test the following method that clones an instance of `Box`, sorting its dimensions and keeping all other fields as is.
+While the following test will detect any differences and clearly tell us which fields are different, it won't explain us why a field should have the expected value:
+
+```kotlin
+val originalBox = Box(
+    barcode = "12345",
+    label = "Misc. Stuff",
+    length = 1,
+    width = 2,
+    height = 3,
+    createdAt = Instant.MIN,
+)
+
+originalBox.withOrderedDimensions() shouldBeEqualUsingFields Box(
+  barcode = "12345",
+  label = "Misc. Stuff",
+  length = 3,
+  width = 2,
+  height = 1,
+  createdAt = Instant.MIN,
+)
+```
+
+The main point here in not to use `StringSpec` or `WordSpec` or any other style. 
+The main point is to clearly explain why we are expecting exactly these values. 
+Kotest provides multiple ways to do that - choose whatever works best for you.
 
 
 

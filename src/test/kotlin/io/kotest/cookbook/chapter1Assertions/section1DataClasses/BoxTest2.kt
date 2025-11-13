@@ -32,7 +32,7 @@ class BoxTest2: StringSpec() {
                         originalBox.length,
                         originalBox.width,
                         originalBox.height,
-                    )
+                     )
                 }
                 withClue("dimensions are sorted") {
                     length shouldBeGreaterThanOrEqual width
