@@ -3,7 +3,7 @@
 <!-- TOC -->
 * [Assertions](#Assertions)
   * [Data Classes and shouldBeEqualUsingFields](#matching-data-classes-with-shouldbeequalusingfields)
-  * [Data Classes and assertSoftly](#matching-data-classes-with-assertsoftly)
+  * [Explicitly Matching Fields of Data Classes](#explicitly-matching-fields-of-data-classes)
   * [Json](#json)
   * [Collections](#collections)
 <!-- TOC -->
@@ -107,8 +107,12 @@ There are multiple ways to match data classes - it might be easier to just expli
 <br/>
 In the next few examples we shall do just that.
 
-### Matching Data Classes with `assertSoftly`
+### Explicitly Matching Fields of Data Classes
 
+If we explicitly match fields of data classes, we can explain why we expect exactly these values.
+There are multiple ways to do that in Kotest. We shall discuss a few here, most definitely not all of them.
+<br/>
+<br/>
 Suppose we are working with the following data class:
 
 ```kotlin
@@ -144,6 +148,49 @@ originalBox.withOrderedDimensions() shouldBeEqualUsingFields Box(
   createdAt = Instant.MIN,
 )
 ```
+
+[The full example can be found here](src/test/kotlin/io/kotest/cookbook/chapter1Assertions/section1DataClasses/BoxTest0.kt)
+<br/>
+<br/>
+
+Using one of the simplest testing styles, the `StringSpec`, we can clearly explain what we are doing:
+
+```kotlin
+    val originalBox = Box(
+        barcode = "12345",
+        label = "Misc. Stuff",
+        length = 1,
+        width = 2,
+        height = 3,
+        createdAt = Instant.MIN,
+    )
+
+    val actual = originalBox.withOrderedDimensions()
+
+    init {
+        "should sort dimensions" {
+            assertSoftly(actual) {
+                listOf(length, width, height) shouldContainExactlyInAnyOrder listOf(
+                    originalBox.length,
+                    originalBox.width,
+                    originalBox.height,
+                    )
+                length shouldBeGreaterThanOrEqual width
+                width shouldBeGreaterThanOrEqual height
+            }
+        }
+        "should copy other fields as is" {
+            assertSoftly(actual) {
+                barcode shouldBe originalBox.barcode
+                label shouldBe originalBox.label
+                createdAt shouldBe originalBox.createdAt
+            }
+        }
+    }
+```
+
+[The full example can be found here](src/test/kotlin/io/kotest/cookbook/chapter1Assertions/section1DataClasses/BoxTest1.kt)
+
 
 The main point here in not to use `StringSpec` or `WordSpec` or any other style. 
 The main point is to clearly explain why we are expecting exactly these values. 
