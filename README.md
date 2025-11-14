@@ -4,8 +4,8 @@
 * [Assertions](#Assertions)
   * [Data Classes and shouldBeEqualUsingFields](#matching-data-classes-with-shouldbeequalusingfields)
   * [Explicitly Matching Fields of Data Classes](#explicitly-matching-fields-of-data-classes)
-  * [Json](#json)
-  * [Collections](#collections)
+  * [Matching JSON](#matching-json)
+  * [Matching Collections](#matching-collections)
 <!-- TOC -->
 
 ## Assertions
@@ -203,12 +203,78 @@ Let's discuss the use of `assertSoftly` here. Without it, the first failed asser
 And it really helps to see the whole picture, not just an individual mismatch.
 <br/>
 <br/>
+Let's have a look at another approach, using `withClue` to accomplish exactly the same thing:
 
+```kotlin
+    private val originalBox = Box(
+        barcode = "12345",
+        label = "Misc. Stuff",
+        length = 1,
+        width = 2,
+        height = 3,
+        createdAt = Instant.MIN,
+    )
+
+    private val actual = originalBox.withOrderedDimensions()
+
+    init {
+        "withOrderedDimensions works" {
+            assertSoftly(actual) {
+                withClue("dimensions match original ones with possibly different order") {
+                    listOf(length, width, height) shouldContainExactlyInAnyOrder listOf(
+                        originalBox.length,
+                        originalBox.width,
+                        originalBox.height,
+                     )
+                }
+                withClue("dimensions are sorted") {
+                    length shouldBeGreaterThanOrEqual width
+                    width shouldBeGreaterThanOrEqual height
+                }
+                withClue("other fields are copied as is") {
+                    barcode shouldBe originalBox.barcode
+                    label shouldBe originalBox.label
+                    createdAt shouldBe originalBox.createdAt
+                }
+            }
+        }
+    }
+```
+
+[The full example can be found here](src/test/kotlin/io/kotest/cookbook/chapter1Assertions/section1DataClasses/BoxTest2.kt)
+<br/>
+When a test wrapped in `withClue` fails, the error message of the failed assert is prefixed with the clue.
+For instance, suppose we want to provide some explanation for the following assertion:
+```kotlin
+ 2*2 shouldBe 5
+
+Expected :5
+Actual   :4
+```
+we can do it as follows:
+
+```kotlin
+withClue("Example from textbook on page 11") {
+    2*2 shouldBe 5
+}
+
+Example from textbook on page 11
+expected:<5> but was:<4>
+        Expected :5
+Actual   :4
+```
+[The full example can be found here](src/test/kotlin/io/kotest/cookbook/chapter1Assertions/section1DataClasses/ClueTest.kt)
+<br/>
+<br/>
 The main point here in not to use `StringSpec` or `WordSpec` or any other style. 
 The main point is to clearly explain why we are expecting exactly these values. 
 Kotest provides multiple ways to do that - choose whatever works best for you.
 
+## Matching JSON
 
+## Matching Collections
+
+When working with JSON, we can use `shouldMatchJson` matcher.
 
 ## Learning Resources
 
