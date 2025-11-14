@@ -64,6 +64,12 @@ So `shouldBeEqualUsingFields` exposes differences in a very readable way. But it
 It's also a good choice when we need to move quickly and are not overly concerned about long-term maintainability of the tests.
 <br/>
 <br/>
+Long-term maintenance concerns: if/when we add fields to the data class, the tests won't compile.
+Good news is that this will give us chance to fix the test accordingly.
+If we are testing how data is mapped between layers or formats, this is exactly the right thing to do.
+If, however, we are testing something unrelated to this new field, we shall still have to fix the expected value, which is a bit unproductive. 
+<br/>
+<br/>
 Fields such as timestamps, uuids, and auto-generated ids are commonly ignored in such tests.
 To accomplish that, we can customize `shouldBeEqualUsingFields` to provide non-default matchers for some fields or to ignore them altogether.
 For instance, the following code ignores `createdAt` field when comparing two objects:
