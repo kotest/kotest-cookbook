@@ -197,6 +197,12 @@ Using one of the simplest testing styles, the `StringSpec`, we can clearly expla
 
 [The full example can be found here](src/test/kotlin/io/kotest/cookbook/chapter1Assertions/section1DataClasses/BoxTest1.kt)
 
+<br/>
+<br/>
+Let's discuss the use of `assertSoftly` here. Without it, the first failed assertion aborts the test, and we wouldn't see the results of other assertions.
+And it really helps to see the whole picture, not just an individual mismatch.
+<br/>
+<br/>
 
 The main point here in not to use `StringSpec` or `WordSpec` or any other style. 
 The main point is to clearly explain why we are expecting exactly these values. 
