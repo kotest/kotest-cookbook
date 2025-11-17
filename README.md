@@ -69,7 +69,9 @@ It's also a good choice when we need to move quickly and are not overly concerne
 Long-term maintenance concerns: if/when we add fields to the data class, the tests won't compile.
 Good news is that this will give us chance to fix the test accordingly.
 If we are testing how data is mapped between layers or formats, this is exactly the right thing to do.
-If, however, we are testing something completely unrelated to this new field, we shall still have to fix the expected value, which is a bit unproductive - so we should consider alternatives. 
+If, however, we are testing something completely unrelated to this new field, we shall still have to fix the expected value, 
+which is a bit unproductive and means that we own a high-maintenance test - so we should consider alternatives. 
+While high-maintenance tests is an interesting topic and it clearly deserves a detailed discussion, we shall not dive into that rabbit hole here.
 <br/>
 <br/>
 Fields such as timestamps, uuids, and auto-generated ids are commonly ignored in such tests.
@@ -262,7 +264,7 @@ withClue("Example from textbook on page 11") {
 
 Example from textbook on page 11
 expected:<5> but was:<4>
-        Expected :5
+Expected :5
 Actual   :4
 ```
 [The full example can be found here](src/test/kotlin/io/kotest/cookbook/chapter1Assertions/section1DataClasses/ClueTest.kt)
