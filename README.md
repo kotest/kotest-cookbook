@@ -1,18 +1,20 @@
 # Kotest Cookbook
 
+There are multiple ways to accomplish most common tasks in Kotest. 
+So let's discuss how we choose the right tools for the task, what are their pros and cons, and what trade-offs we should consider when choosing one over another.
+<br/>
+<br/>
+Of course we have the ubiquitous `shouldBe` - the Swiss Army knife of assertions. 
+Surely it can handle almost anything, but for better results we typically go for specialized tools instead of that jack-of-all-trades aka `shouldBe`.
+
 <!-- TOC -->
 * [Assertions](#Assertions)
   * [Data Classes and shouldBeEqualUsingFields](#matching-data-classes-with-shouldbeequalusingfields)
   * [Explicitly Matching Fields of Data Classes](#explicitly-matching-fields-of-data-classes)
-  * [Matching JSON](#matching-json)
-  * [Matching Collections](#matching-collections)
 <!-- TOC -->
 
 ## Assertions
 
-There are multiple ways to accomplish most common tasks in Kotest. So let's discuss how they compare, what are their pros and cons, and what trade-offs we should consider when choosing one over another.
-<br/>
-<br/>
 This is similar to multiple similar tools in a toolbox - even though a Swiss Army knife aka `shouldBe` can handle many comparisons, generally we can get better results using more specialized tools.
 
 ### Matching Data Classes with `shouldBeEqualUsingFields`
@@ -67,7 +69,7 @@ It's also a good choice when we need to move quickly and are not overly concerne
 Long-term maintenance concerns: if/when we add fields to the data class, the tests won't compile.
 Good news is that this will give us chance to fix the test accordingly.
 If we are testing how data is mapped between layers or formats, this is exactly the right thing to do.
-If, however, we are testing something unrelated to this new field, we shall still have to fix the expected value, which is a bit unproductive. 
+If, however, we are testing something completely unrelated to this new field, we shall still have to fix the expected value, which is a bit unproductive - so we should consider alternatives. 
 <br/>
 <br/>
 Fields such as timestamps, uuids, and auto-generated ids are commonly ignored in such tests.
@@ -269,12 +271,6 @@ Actual   :4
 The main point here in not to use `StringSpec` or `WordSpec` or any other style. 
 The main point is to clearly explain why we are expecting exactly these values. 
 Kotest provides multiple ways to do that - choose whatever works best for you.
-
-## Matching JSON
-
-## Matching Collections
-
-When working with JSON, we can use `shouldMatchJson` matcher.
 
 ## Learning Resources
 
