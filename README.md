@@ -281,6 +281,37 @@ If our dependency is a function, not an object, we don't need to mock - instead 
 Generally using test doubles instead of mocks makes our lives easier, especially when we are dealing with complex problems.
 We shall get to discussing complex scenarios later in this chapter, but let's start with a few simple ones.
 
+### Basic Example - Replace A Mock with A Test Double
+
+Suppose our class is named `DecisionsEngine` and it depends on another class named `AnsweringService`:
+
+```kotlin
+class DecisionsEngine(
+    private val answeringService: AnsweringService,
+)
+
+class AnsweringService {
+    fun answer(quuestion: String): Int {
+        TODO()
+    }
+    // (snip)…
+}
+```
+[The full code of AnsweringService can be found here](src/main/kotlin/io/kotest/cookbook/chapter2Fakery/AnsweringService.kt)
+[The full code of DecisionsEngine can be found here](src/main/kotlin/io/kotest/cookbook/chapter2Fakery/DecisionsEngine.kt)
+
+Naturally, in order to test `DecisionsEngine`, we need to mock `AnsweringService`, because our dependency is an object:
+
+```kotlin
+private val answeringService: AnsweringService = run {
+    val ret = mockk<AnsweringService>()
+    every { ret.answer(any()) } returns 42
+    ret
+}
+
+private val decisionsEngine = DecisionsEngine(answeringService)
+```
+[The full example can be found here](src/test/kotlin/io/kotest/cookbook/chapter2Fakery/section1BasicExample/DecisionsEngineWithMockTest.kt)
 ### Test Double: A Basic Example
 
 ## Learning Resources

@@ -1,5 +1,6 @@
 package io.kotest.cookbook.chapter2Fakery
 
+// Typically this class would be annotated with @Service or another similar annotation
 class AnsweringService {
     fun answer(quuestion: String): Int {
         TODO()

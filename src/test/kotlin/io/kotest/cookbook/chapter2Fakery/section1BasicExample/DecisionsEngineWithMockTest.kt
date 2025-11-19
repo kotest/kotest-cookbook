@@ -1,11 +1,13 @@
-package io.kotest.cookbook.chapter2Fakery
+package io.kotest.cookbook.chapter2Fakery.section1BasicExample
 
+import io.kotest.cookbook.chapter2Fakery.AnsweringService
+import io.kotest.cookbook.chapter2Fakery.DecisionsEngine
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 
-class DecisionsEngineTest: StringSpec() {
+class DecisionsEngineWithMockTest: StringSpec() {
     private val answeringService: AnsweringService = run {
         val ret = mockk<AnsweringService>()
         every { ret.answer(any()) } returns 42
