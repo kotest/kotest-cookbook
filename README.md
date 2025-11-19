@@ -11,6 +11,7 @@ Surely it can handle almost anything, but for better results we typically go for
 * [Assertions](#Assertions)
   * [Data Classes and shouldBeEqualUsingFields](#matching-data-classes-with-shouldbeequalusingfields)
   * [Explicitly Matching Fields of Data Classes](#explicitly-matching-fields-of-data-classes)
+* [Using Fakery](#using-fakery)
 <!-- TOC -->
 
 ## Assertions
@@ -274,6 +275,14 @@ The main point here in not to use `StringSpec` or `WordSpec` or any other style.
 The main point is to clearly explain why we are expecting exactly these values. 
 Kotest provides multiple ways to do that - choose whatever works best for you.
 
+## Using Fakery
+
+If our dependency is a function, not an object, we don't need to mock - instead we can just build a test double.
+Generally using test doubles instead of mocks makes our lives easier, especially when we are dealing with complex problems.
+We shall get to discussing complex scenarios later in this chapter, but let's start with a few simple ones.
+
+### Test Double: A Basic Example
+
 ## Learning Resources
 
 - [Kotest Documentation](https://kotest.io/)
@@ -281,7 +290,8 @@ Kotest provides multiple ways to do that - choose whatever works best for you.
 
 ## Contributing
 
-Feel free to submit pull requests or create issues.
+Feel free to submit pull requests or create issues. 
+[Contributing Guidelines](CONTRIBUTING.md)
 
 ## License
 

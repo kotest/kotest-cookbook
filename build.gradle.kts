@@ -13,9 +13,10 @@ repositories {
 dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib")
     
-    testImplementation("io.kotest:kotest-runner-junit5:6.0.4")
-    testImplementation("io.kotest:kotest-assertions-core:6.0.4")
-    testImplementation("io.kotest:kotest-property:6.0.4")
+    testImplementation("io.kotest:kotest-runner-junit5:6.0.5")
+    testImplementation("io.kotest:kotest-assertions-core:6.0.5")
+    testImplementation("io.kotest:kotest-property:6.0.5")
+    testImplementation("io.mockk:mockk:1.13.14")
 }
 
 kotlin {
