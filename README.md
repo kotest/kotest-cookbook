@@ -12,6 +12,7 @@ Surely it can handle almost anything, but for better results we typically go for
   * [Data Classes and shouldBeEqualUsingFields](#matching-data-classes-with-shouldbeequalusingfields)
   * [Explicitly Matching Fields of Data Classes](#explicitly-matching-fields-of-data-classes)
 * [Using Fakery](#using-fakery)
+  * [Basic Example - Replace A Mock with A Test Double](#basic-example---replace-a-mock-with-a-test-double)
 <!-- TOC -->
 
 ## Assertions
@@ -279,7 +280,10 @@ Kotest provides multiple ways to do that - choose whatever works best for you.
 
 If our dependency is a function, not an object, we don't need to mock - instead we can just build a test double.
 Generally using test doubles instead of mocks makes our lives easier, especially when we are dealing with complex problems.
+<br/>
+<br/>
 We shall get to discussing complex scenarios later in this chapter, but let's start with a few simple ones.
+Even in simple scenarios, using test doubles instead of mocks allows us to solve problems with less fuss.
 
 ### Basic Example - Replace A Mock with A Test Double
 
@@ -312,7 +316,6 @@ private val answeringService: AnsweringService = run {
 private val decisionsEngine = DecisionsEngine(answeringService)
 ```
 [The full example can be found here](src/test/kotlin/io/kotest/cookbook/chapter2Fakery/section1BasicExample/DecisionsEngineWithMockTest.kt)
-### Test Double: A Basic Example
 
 ## Learning Resources
 
