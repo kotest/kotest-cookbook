@@ -317,6 +317,16 @@ private val decisionsEngine = DecisionsEngine(answeringService)
 ```
 [The full example can be found here](src/test/kotlin/io/kotest/cookbook/chapter2Fakery/section1BasicExample/DecisionsEngineWithMockTest.kt)
 
+Note, however, that even though `AnsweringService` has multiple methods, we can fully test `DecisionsEngine` while mocking only one of them - `answer`.
+All other methods of `AnsweringService` are not used by `DecisionsEngine`, so it does not even need to know about them.
+In fact, all that `DecisionsEngine` needs to know about is this: there is a function that takes a `String` question and returns an `Int` answer.
+<br/>
+<br/>
+This is called loose coupling - `DecisionsEngine` only knows about its dependency what's needed for its own purposes.
+So let's refactor `DecisionsEngine` to depend on a function, not an object:
+
+```kotlin
+
 ## Learning Resources
 
 - [Kotest Documentation](https://kotest.io/)
