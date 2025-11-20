@@ -280,6 +280,8 @@ Kotest provides multiple ways to do that - choose whatever works best for you.
 
 If our dependency is a function, not an object, we don't need to mock - instead we can just build a test double.
 Generally using test doubles instead of mocks makes our lives easier, especially when we are dealing with complex problems.
+Usually we don't need any frameworks whatsoever to build test doubles - just plain simple functions built with Kotlin standard library will do.
+Surely Kotest's fakery comes very handy in some more complex cases, but usually we don't need it.
 <br/>
 <br/>
 We shall get to discussing complex scenarios later in this chapter, but let's start with a few simple ones.
@@ -323,8 +325,50 @@ In fact, all that `DecisionsEngine` needs to know about is this: there is a func
 <br/>
 <br/>
 This is called loose coupling - `DecisionsEngine` only knows about its dependency what's needed for its own purposes.
-So let's refactor `DecisionsEngine` to depend on a function, not an object:
+So let's refactor `DecisionsEngine` to depend on a function instead of an object. 
+Note that we don't need to change `AnsweringService` at all:
 
+```kotlin
+fun interface Answer {
+    operator fun invoke(question: String): Int
+}
+
+// If we are wiring up dependencies manually, we can use this function:
+// If we are using a DI framework, such as SpringBoot, that is discussed in the next example.
+fun getDecisionsEngine(answeringService: AnsweringService): DecisionsEngineUsingFunction =
+    DecisionsEngineUsingFunction(answeringService::answer)
+
+class DecisionsEngineUsingFunction(
+    private val answer: Answer,
+) {
+    fun decide(question: String): String {
+        return """The decision on "$question" is ${answer(question)}"""
+    }
+}
+```
+
+[The full code of DecisionsEngineUsingFunction can be found here](src/main/kotlin/io/kotest/cookbook/chapter2Fakery/DecisionsEngineUsingFunction.kt)
+<br/>
+<br/>
+What does this refactoring buy us? Injecting a test double instead of a mock is way simpler:
+
+```kotlin
+private val serviceToTest = DecisionsEngineUsingFunction(
+        answer = { 42 }
+    )
+```
+
+[The full example can be found here](src/test/kotlin/io/kotest/cookbook/chapter2Fakery/section1BasicExample/DecisionsEngineWithFunctionTest.kt)
+<br/>
+We don't need any mocking framework at all - just a simple lambda that returns one value.
+<br/>
+<br/>
+What about systems with DI frameworks, such as SpringBoot? 
+The following implementation is a bit more involved and it does require to modify `AnsweringService`:
+
+```kotlin
+
+```
 ```kotlin
 
 ## Learning Resources
