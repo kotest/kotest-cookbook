@@ -8,11 +8,17 @@ Of course we have the ubiquitous `shouldBe` - the Swiss Army knife of assertions
 Surely it can handle almost anything, but for better results we typically go for specialized tools instead of that jack-of-all-trades aka `shouldBe`.
 
 <!-- TOC -->
-* [Assertions](#Assertions)
-  * [Data Classes and shouldBeEqualUsingFields](#matching-data-classes-with-shouldbeequalusingfields)
-  * [Explicitly Matching Fields of Data Classes](#explicitly-matching-fields-of-data-classes)
-* [Using Fakery](#using-fakery)
-  * [Basic Example - Replace A Mock with A Test Double](#basic-example---replace-a-mock-with-a-test-double)
+* [Kotest Cookbook](#kotest-cookbook)
+  * [Assertions](#assertions)
+    * [Matching Data Classes with `shouldBeEqualUsingFields`](#matching-data-classes-with-shouldbeequalusingfields)
+    * [Explicitly Matching Fields of Data Classes](#explicitly-matching-fields-of-data-classes)
+  * [Using Fakery](#using-fakery)
+    * [Basic Example - Replace A Mock with A Test Double](#basic-example---replace-a-mock-with-a-test-double)
+    * [Example: Verifying That Test Double Was Not Called](#example-verifying-that-test-double-was-not-called)
+    * [Example: Verifying That Test Double Was Called](#example-verifying-that-test-double-was-called)
+  * [Learning Resources](#learning-resources)
+  * [Contributing](#contributing)
+  * [License](#license)
 <!-- TOC -->
 
 ## Assertions
@@ -389,6 +395,8 @@ class DecisionsEngineUsingInterface(
 )
 ```
 
+[The full code of DecisionsEngineUsingInterface can be found here](src/main/kotlin/io/kotest/cookbook/chapter2Fakery/DecisionsEngineUsingInterface.kt)
+
 And we can set up our test double in the test as follows:
 
 ```kotlin
@@ -399,12 +407,16 @@ And we can set up our test double in the test as follows:
     )
 ```
 
-[The full code of DecisionsEngineUsingInterface can be found here](src/main/kotlin/io/kotest/cookbook/chapter2Fakery/DecisionsEngineUsingInterface.kt)
-
 Clearly this is more verbose than using a fun interface, and in this case this is no simpler than using a mocking framework.
-So we should use this approach only in more complex scenarios, when using an interface instead of a class still brings significant benefits, as we shall discuss in the next examples.
+So we should use test doubles with DI frameworks only in more complex scenarios, when using an interface instead of a class still brings significant benefits, as we shall discuss in the next examples.
 
 [The full example can be found here](src/test/kotlin/io/kotest/cookbook/chapter2Fakery/section1BasicExample/DecisionsEngineUsingInterfaceTest.kt)
+
+Having discussed this most basic example, let's move on to slightly more involved ones.
+
+### Example: Verifying That Test Double Was Not Called
+
+### Example: Verifying That Test Double Was Called
 
 ## Learning Resources
 
