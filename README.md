@@ -361,15 +361,50 @@ private val serviceToTest = DecisionsEngineUsingFunction(
 [The full example can be found here](src/test/kotlin/io/kotest/cookbook/chapter2Fakery/section1BasicExample/DecisionsEngineWithFunctionTest.kt)
 <br/>
 We don't need any mocking framework at all - just a simple lambda that returns one value.
+Still, this is a relative small gain from this refactoring. We'll get to more significant benefits in more complex scenarios, later.
 <br/>
 <br/>
-What about systems with DI frameworks, such as SpringBoot? 
-The following implementation is a bit more involved and it does require to modify `AnsweringService`:
+What about systems with DI frameworks, such as SpringBoot? Like in the previous example, we can refactor `DecisionsEngine` to depend on an interface instead of an object.
+The following implementation is a bit more involved and it does require to modify `AnsweringService` as follows:
 
 ```kotlin
+interface HasAnswer {
+    fun answer(question: String): Int
+}
 
+// Typically this class would be annotated with @Service or another similar annotation
+class AnsweringServiceV2 : HasAnswer {
+    override fun answer(question: String): Int { 
+(snip)
 ```
+
+[The full code of AnsweringServiceV2 can be found here](src/main/kotlin/io/kotest/cookbook/chapter2Fakery/AnsweringServiceV2.kt)
+
+That done, `DecisionsEngine` can depend on `HasAnswer` interface instead of `AnsweringServiceV2` class - this is a concept understood and supported by SpringBoot:
+
 ```kotlin
+// This class can be annotated with @Service or @Component or another similar annotation
+class DecisionsEngineUsingInterface(
+    private val hasAnswer: HasAnswer, // SpringBoot can inject this dependency
+)
+```
+
+And we can set up our test double in the test as follows:
+
+```kotlin
+    private val serviceToTest = DecisionsEngineUsingInterface(
+        hasAnswer = object: HasAnswer { 
+            override fun answer(question: String): Int = 42
+        }
+    )
+```
+
+[The full code of DecisionsEngineUsingInterface can be found here](src/main/kotlin/io/kotest/cookbook/chapter2Fakery/DecisionsEngineUsingInterface.kt)
+
+Clearly this is more verbose than using a fun interface, and in this case this is no simpler than using a mocking framework.
+So we should use this approach only in more complex scenarios, when using an interface instead of a class still brings significant benefits, as we shall discuss in the next examples.
+
+[The full example can be found here](src/test/kotlin/io/kotest/cookbook/chapter2Fakery/section1BasicExample/DecisionsEngineUsingInterfaceTest.kt)
 
 ## Learning Resources
 

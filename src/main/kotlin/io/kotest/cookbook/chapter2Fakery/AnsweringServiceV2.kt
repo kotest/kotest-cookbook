@@ -1,8 +1,12 @@
 package io.kotest.cookbook.chapter2Fakery
 
+interface HasAnswer {
+    fun answer(question: String): Int
+}
+
 // Typically this class would be annotated with @Service or another similar annotation
-class AnsweringService {
-    fun answer(question: String): Int {
+class AnsweringServiceV2 : HasAnswer {
+    override fun answer(question: String): Int {
         TODO()
     }
 
