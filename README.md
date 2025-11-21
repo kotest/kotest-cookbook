@@ -416,6 +416,43 @@ Having discussed this most basic example, let's move on to slightly more involve
 
 ### Example: Verifying That Test Double Was Not Called
 
+The simplest way to verify that a test double was not called is to add a failed assertion right inside the test double.
+Suppose, for example, that we need to verify that a decision was made without alerting.
+The following test double will do just that:
+```kotlin
+val serviceToTest = DecisionsEngineWithAlerting(
+    answer = { 42 },
+    alert = { severity: AlertSeverity, message: String ->
+        failSoftly("Alert was called with severity $severity and message: $message")
+    }
+)
+```
+
+If we want to get complete information about all calls made to the test double, we can use a mutable list to record them:
+
+```kotlin
+val alertingCalls = mutableListOf<Pair<AlertSeverity, String>>()
+val serviceToTest = DecisionsEngineWithAlerting(
+    answer = { 42 },
+    alert = { severity: AlertSeverity, message: String ->
+        alertingCalls.add(Pair(severity, message))
+    }
+)
+```
+
+That done, we can utilize the full power of all Kotest's assertion to analyze the recorded calls.
+In this basic example, we don't really need that, one simple assertion will do:
+
+```kotlin
+alertingCalls shouldBe empty()
+```
+
+More advanced examples will follow soon.
+
+[The full example can be found here](src/test/kotlin/io/kotest/cookbook/chapter2Fakery/section2VerifyNotCalled/VerifyingTestDoubleWasNotCalledTest.kt)
+
+As we have seen, we don't need any frameworks to build test doubles and verify that they were not called.
+
 ### Example: Verifying That Test Double Was Called
 
 ## Learning Resources
