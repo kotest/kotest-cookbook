@@ -455,6 +455,60 @@ As we have seen, we don't need any frameworks to build test doubles and verify t
 
 ### Example: Verifying That Test Double Was Called
 
+Suppose that we are testing an object's method that accepts a `List` and does the following:
+
+* split the list into chunks of a give size
+* pass each chunk to a dependency for processing
+* both the order of chunks and the order of elements in each chunk do not matter
+
+as is shown in the following code snippet:
+
+```kotlin
+interface ContainerProcessor {
+    fun process(container: Container)
+}
+
+class ContainerFactoryWithObject(
+    private val containerProcessor: ContainerProcessor,
+    private val maxSize: Int,
+) {
+    fun processInChunks(elements: List<Int>) 
+  (snip)...
+```
+
+[The full code of ContainerFactoryWithObject can be found here](src/main/kotlin/io/kotest/cookbook/chapter2Fakery/ContainerFactory.kt)
+
+Traditionally, we would mock the dependency and verify that it was called with expected chunks, as follows:
+
+```kotlin
+private val containerProcessor = run {
+    val ret = mockk<ContainerElementsPrinter>()
+    justRun { ret.process(any()) }
+    ret
+}
+
+val factory = ContainerFactoryWithObject(
+    containerProcessor,
+    maxSize = 2,
+)
+factory.processInChunks(listOf(1, 2, 3, 4, 5))
+// Here we are verifying how the factory is implemented,
+// not that it meets the requirements.
+verify(exactly = 1) { containerProcessor.process(Container(listOf(1, 2))) }
+verify(exactly = 1) { containerProcessor.process(Container(listOf(3, 4))) }
+verify(exactly = 1) { containerProcessor.process(Container(listOf(5))) }
+```
+
+In this test we are not verifying that the requirements are met - we are verifying how the factory is implemented.
+And this approach has the following two drawbacks:
+
+* If the implementation of `processInChunks` changes, the test will break even if the requirements are still met.
+* The test does not explain what exactly we expect from the output.
+
+[The full example can be found here](src/test/kotlin/io/kotest/cookbook/chapter2Fakery/section3VerifyCalled/ContainerFactoryTestWithMocks.kt)
+
+This is one of those cases where test doubles shine - we can use the full power of Kotest's assertions to explain what are the requirements, without caring about the implementation details.
+
 ## Learning Resources
 
 - [Kotest Documentation](https://kotest.io/)
