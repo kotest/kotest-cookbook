@@ -457,7 +457,7 @@ As we have seen, we don't need any frameworks to build test doubles and verify t
 
 Suppose that we are testing an object's method that accepts a `List` and does the following:
 
-* split the list into chunks of a give size
+* split the list into chunks
 * pass each chunk to a dependency for processing
 * both the order of chunks and the order of elements in each chunk do not matter
 
@@ -468,21 +468,25 @@ interface ContainerProcessor {
     fun process(container: Container)
 }
 
-class ContainerFactoryWithObject(
-    private val containerProcessor: ContainerProcessor,
-    private val maxSize: Int,
+class ElementsProcessorWithObjectDependency(
+  private val containerProcessor: ContainerProcessor,
+  private val maxChunkSize: Int,
 ) {
-    fun processInChunks(elements: List<Int>) 
+    fun process(elements: List<Int>) 
   (snip)...
+
+  data class Container(
+    val elements: List<Int>
+  )
 ```
 
-[The full code of ContainerFactoryWithObject can be found here](src/main/kotlin/io/kotest/cookbook/chapter2Fakery/ContainerFactory.kt)
+[The full code of ContainerFactoryWithObject can be found here](src/main/kotlin/io/kotest/cookbook/chapter2Fakery/ElementsProcessor.kt)
 
 Traditionally, we would mock the dependency and verify that it was called with expected chunks, as follows:
 
 ```kotlin
 private val containerProcessor = run {
-    val ret = mockk<ContainerElementsPrinter>()
+    val ret = mockk<ContainerPrinter>()
     justRun { ret.process(any()) }
     ret
 }
@@ -491,7 +495,7 @@ val factory = ContainerFactoryWithObject(
     containerProcessor,
     maxSize = 2,
 )
-factory.processInChunks(listOf(1, 2, 3, 4, 5))
+factory.process(listOf(1, 2, 3, 4, 5))
 // Here we are verifying how the factory is implemented,
 // not that it meets the requirements.
 verify(exactly = 1) { containerProcessor.process(Container(listOf(1, 2))) }
@@ -502,12 +506,47 @@ verify(exactly = 1) { containerProcessor.process(Container(listOf(5))) }
 In this test we are not verifying that the requirements are met - we are verifying how the factory is implemented.
 And this approach has the following two drawbacks:
 
-* If the implementation of `processInChunks` changes, the test will break even if the requirements are still met.
+* If the implementation of `process` changes, the test will break even if the requirements are still met.
 * The test does not explain what exactly we expect from the output.
 
-[The full example can be found here](src/test/kotlin/io/kotest/cookbook/chapter2Fakery/section3VerifyCalled/ContainerFactoryTestWithMocks.kt)
+[The full example can be found here](src/test/kotlin/io/kotest/cookbook/chapter2Fakery/section3VerifyCalled/ElementsProcessorTestWithMocks.kt)
 
-This is one of those cases where test doubles shine - we can use the full power of Kotest's assertions to explain what are the requirements, without caring about the implementation details.
+This is one of those cases where test doubles shine - we can just capture the calls made to the test double and store them in a list, which requires very little learning an is easy to do.
+That done, we can use the full power of Kotlin standard library as well as Kotest's assertions to explain what are the requirements,
+and to assert exactly that they are met,
+without caring about the implementation details.
+Let's see how easy it is:
+
+```kotlin
+val calls = mutableListOf<Container>()
+val serviceToTest = ElementsProcessorWithFunctionDependency(
+    processContainer = { container: Container ->
+        calls.add(container)
+    },
+    maxChunkSize = 2,
+)
+val elements = listOf(1, 2, 3, 4, 5)
+serviceToTest.process(elements)
+// withClue allows us to explain the requirements
+withClue("each element is in exactly one container") {
+    val allElements = calls.flatMap { it.elements }
+    allElements shouldContainExactlyInAnyOrder elements
+}
+withClue("elements are correctly chunked") {
+    calls.forAll { container ->
+        // real life requirements could be way more complex
+        // we need to keep them simple in this example
+        container.elements.size shouldBeIn 1..2
+    }
+}
+```
+
+Should our implementation of `process` change, the test will still pass as long as the requirements are met.
+For instance, if the `process` method after the change provides the following chunks: `[2, 5], [1, 4], [3]`, the test will still pass.
+<br/>
+<br/>
+So far we have been able to get by without any frameworks at all - just plain Kotlin code and Kotest assertions.
+Now let's see how Kotest's fakery can help us in more complex scenarios. It's only two simple functions, 
 
 ## Learning Resources
 
