@@ -548,6 +548,75 @@ For instance, if the `process` method after the change provides the following ch
 So far we have been able to get by without any frameworks at all - just plain Kotlin code and Kotest assertions.
 Now let's see how Kotest's fakery can help us in more complex scenarios. It's only two simple functions, 
 
+### Test Double Returning Different Values on Subsequent Calls With Fakery
+
+Mocking libraries such as `Mockk` have a really handy feature - the ability to return different values on subsequent calls, such as:
+
+```kotlin
+every { service.answer(any()) } returns 42 andThen 43 andThen 44
+```
+
+While we generally don't need any mocking library in functional programming, this feature is extremely useful in some cases.
+This is the only case where we need Kotest's fakery, which has only two simple functions. 
+If our test double never needs to throw exceptions, we can use the following extension function:
+
+```kotlin
+// toFunction is an extension function in Kotest's fakery
+val answers = sequenceOf(42, 43, 44).toFunction()
+answers.next() shouldBe 42
+answers.next() shouldBe 43
+answers.next() shouldBe 44
+// Inject this test double as a dependency as follows:
+val decisionsEngine = DecisionsEngineUsingFunction(
+    answer = { answers.next() }
+)
+```
+
+Should we need the test double to throw exceptions on some calls, we can do it as follows:
+
+```kotlin
+val answers = sequenceOf(
+    Result.success(42),
+    Result.failure(Exception("Oops!")),
+    Result.success(44),
+).toFunction()
+answers.next() shouldBe 42
+shouldThrow<Exception> { answers.next() }.message shouldBe "Oops!"
+answers.next() shouldBe 44
+```
+
+It is important that we are using an extension function on a `Seqeunce` and not on a `List`. 
+The reason is simple - sequences are evaluated lazily, so we invoke any side effects along with providing the values.
+The following simple example shows how that works:
+
+```kotlin
+val answers = sequence {
+    println("Side effect before yielding 42")
+    yield(42)
+    println("Side effect before yielding 43")
+    yield(43)
+}.toFunction()
+(answers.next() shouldBe 42).also { println("Next value was: $it") }
+(answers.next() shouldBe 43).also { println("Next value was: $it") }
+/*
+Output:
+Side effect before yielding 42
+Next value was: 42
+Side effect before yielding 43
+Next value was: 43
+ */
+```
+
+[The full example can be found here](src/test/kotlin/io/kotest/cookbook/chapter2Fakery/section3VerifyCalled/ReturningMultipleValuesTest.kt)
+
+Let's discuss a real life example where this feature is really useful.
+
+### Example: Using Fakery To Cancel A Long-Running Loop
+
+Suppose that we have a process that executes tasks in a loop, and that porcess can be cancelled mid-flight and needs to stop as soon as the current task has completed.
+The following code shows the implementation:
+
+
 ## Learning Resources
 
 - [Kotest Documentation](https://kotest.io/)
