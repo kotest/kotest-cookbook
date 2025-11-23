@@ -707,6 +707,94 @@ init {
 }
 ```
 
+[The full example can be found here](src/test/kotlin/io/kotest/cookbook/chapter2Fakery/section4ExampleCancel/CancelLongRunningLoopTest.kt)
+
+### Example: Using Fakery To Test Rate Limiter
+
+Suppose that our system calls some external service, and we must never exceed the rate we are calling that service.
+In this example we shall be testing such a rate limiter, using test doubles and Kotest's fakery.
+Suppose the rate limiter is implemented as follows:
+
+```kotlin
+requests.forEach { request ->
+    val startedAt = Instant.now()
+    externalServiceCall(request)
+    val endedAt = Instant.now()
+    val duration = endedAt.toEpochMilli() - startedAt.toEpochMilli()
+    if(duration < allowedFrequencyInMilliseconds) {
+        val sleepTime = allowedFrequencyInMilliseconds - duration
+        delay(sleepTime)
+    }
+}
+```
+
+[The full code of RateLimiter can be found here](src/main/kotlin/io/kotest/cookbook/chapter2Fakery/RateLimiter.kt)
+
+While this implementation is simple, testing it is not so easy. 
+We definitely can record the times when the external service started and stopped processing each task,
+and from that we can estimate how long the rate limiter delayed between calls.
+Our estimates, however, will be imprecise, and building such a test will require some work.
+Testing this code with test doubles is much easier.
+<br/>
+<br/>
+Let us replace hardcoded calls to `Instant.now()` and `delay()` with injectable dependencies - that will allow us to know for how long we delay between calls to external service. 
+The following code is very easy to test with test doubles:
+
+```kotlin
+fun interface ExternalServiceCall {
+    operator fun invoke(request: String)
+}
+
+fun interface GetNow {
+    operator fun invoke(): Instant
+}
+
+fun interface DelayFor {
+    suspend operator fun invoke(milliseconds: Long)
+}
+
+class RateLimiter(
+  private val externalServiceCall: ExternalServiceCall,
+  private val allowedFrequencyInMilliseconds: Int,
+  private val getNow: GetNow,
+  private val delayFor: DelayFor,
+) {
+  suspend fun callService(requests: Sequence<String>) {
+    requests.forEach { request ->
+      val startedAt = getNow()
+      externalServiceCall(request)
+      val endedAt = getNow()
+      val duration = endedAt.toEpochMilli() - startedAt.toEpochMilli()
+      if(duration < allowedFrequencyInMilliseconds) {
+        val sleepTime = allowedFrequencyInMilliseconds - duration
+        delayFor(sleepTime)
+      }
+    }
+  }
+}
+```
+
+The test for `RateLimiter` is straightforward and precise - it will always run with exactly the same outcome:
+
+```kotlin
+```
+
+### Test Doubles - Don't Overdo It
+
+No tool is the best fit for all purposes. Test doubles are no exception.
+For example, when we replace calls to `Instant.now()` and `delay()` with dependencies, 
+we end up completely disconnected from the reality. 
+<br/>
+<br/>
+If we have any bugs, using real time might sometimes expose them.
+For instance, we can have code that usually works, but fails exactly on an hour boundary, or on a leap year day, or during the week when daylight saving time changes.
+Once we have replaced real time with test doubles, that possibility is gone, we won't catch those bugs anymore.
+We shall discuss it more in the chapter about flaky tests.
+<br/>
+<br/>
+The gist of this chapter was to show use cases when test doubles really shine, not do discourage using mocks altogether.
+Mocking libraries such as `mockk` are massively powerful and useful, but we are suggesting to complement them with test doubles in functional programming, especially in more difficult situations.
+
 ## Learning Resources
 
 - [Kotest Documentation](https://kotest.io/)

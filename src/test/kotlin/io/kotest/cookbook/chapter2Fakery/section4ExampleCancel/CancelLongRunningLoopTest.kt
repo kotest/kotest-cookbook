@@ -4,7 +4,7 @@ import io.kotest.cookbook.chapter2Fakery.CancellableTaskProcessor
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 
-class CancellableTaskProcessorTest: StringSpec() {
+class CancelLongRunningLoopTest: StringSpec() {
     private val tasks = sequence<String> {
         yield("task1")
         processor.cancel()
