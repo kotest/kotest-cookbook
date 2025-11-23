@@ -614,8 +614,71 @@ Let's discuss a real life example where this feature is really useful.
 ### Example: Using Fakery To Cancel A Long-Running Loop
 
 Suppose that we have a process that executes tasks in a loop, and that porcess can be cancelled mid-flight and needs to stop as soon as the current task has completed.
-The following code shows the implementation:
+The following code shows the implementation, which is very simple:
 
+```kotlin
+class CancellableTaskProcessor(
+    private val processTask: ProcessTask,
+) {
+    private val isCancelledRef = AtomicBoolean(false)
+    
+    fun processTasks(tasks: Sequence<String>) {
+        for (task in tasks) {
+            if (isCancelledRef.get()) {
+                println("Processing cancelled. Exiting loop.")
+                break
+            }
+            processTask(task)
+        }
+    }
+    
+    fun cancel() = isCancelledRef.set(true)
+}
+```
+
+While the implementation is simple, testing it is requires some orchestration, and the result is less than perfect.
+To test that the loop exits as soon as we've invoked `cancel`, we should need to run something in parallel.
+It could be done with threads or coroutines, but either way we should be doing something like this:
+
+|------------------------|------------------------|
+| Thread 1               | Thread 2               |
+|------------------------|------------------------|
+| Start processing tasks |                        |
+| Process task 1         |                        |
+|                        |       Cancel           |
+
+And then we should verify which tasks were processed.
+<br/>
+<br/>
+While this is clearly doable, it requires a lot of work, and the test may be 
+
+* imprecise - we might not be able to guarantee exactly when the `cancel` call happens, so we cannot expect exactly how many tasks were processed
+* flaky - even though we do not match number of processed tasks exactly, sometimes the test may fail
+  <br/>
+  <br/>
+Using fakery, we can easily make our test both precise and non-flaky - it will always run with exactly the same outcome.
+Let's see how easy it is:
+
+```kotlin
+private val tasks = sequence<String> {
+    yield("task1")
+    processor.cancel()
+    yield("task2")
+}
+
+private val processedTasks = mutableListOf<String>()
+
+private val processor = CancellableTaskProcessor(
+    processTask = { task -> processedTasks.add(task) }
+)
+
+init {
+    "stops processing tasks when cancelled" {
+        processor.processTasks(tasks)
+        processedTasks shouldBe listOf("task1")
+    }
+}
+```
 
 ## Learning Resources
 
