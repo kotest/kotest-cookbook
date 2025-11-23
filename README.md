@@ -653,7 +653,7 @@ And then we should verify which tasks were processed.
 While this is clearly doable, it requires a lot of work, and the test may be 
 
 * imprecise - we might not be able to guarantee exactly when the `cancel` call happens, so we cannot expect exactly how many tasks were processed
-* flaky - even though we do not match number of processed tasks exactly, sometimes the test may fail
+* flaky - even though we do not match number of processed tasks exactly, sometimes the test may fail.
   <br/>
   <br/>
 Using fakery, we can easily make our test both precise and non-flaky - it will always run with exactly the same outcome.
@@ -662,6 +662,7 @@ Let's see how easy it is:
 ```kotlin
 private val tasks = sequence<String> {
     yield("task1")
+  // processor will always be cancelled before processing second task
     processor.cancel()
     yield("task2")
 }
