@@ -15,7 +15,10 @@ Surely it can handle almost anything, but for better results we typically go for
   * [Using Fakery](#using-fakery)
     * [Basic Example - Replace A Mock with A Test Double](#basic-example---replace-a-mock-with-a-test-double)
     * [Example: Verifying That Test Double Was Not Called](#example-verifying-that-test-double-was-not-called)
+    * [Basic Example: Verifying That Test Double Was Called](#basic-example-verifying-that-test-double-was-called)
     * [Example: Verifying That Test Double Was Called](#example-verifying-that-test-double-was-called)
+    * [Test Double Returning Different Values on Subsequent Calls With Fakery](#test-double-returning-different-values-on-subsequent-calls-with-fakery)
+    * [Example: Using Fakery To Cancel A Long-Running Loop](#example-using-fakery-to-cancel-a-long-running-loop)
   * [Learning Resources](#learning-resources)
   * [Contributing](#contributing)
   * [License](#license)
@@ -453,6 +456,29 @@ More advanced examples will follow soon.
 
 As we have seen, we don't need any frameworks to build test doubles and verify that they were not called.
 
+### Basic Example: Verifying That Test Double Was Called
+
+The simplest way to make sure that a test double was called is to increment a counter inside the test double.
+While we are at it, we can also assert that the parameters passed to the test double are as expected:
+
+```kotlin
+var callCount = 0
+val systemToTest = DecisionsEngineUsingFunction(
+    answer = { question : String ->
+        question.shouldNotContain("apple")
+        callCount++
+    }
+)
+systemToTest.decide("Do oranges taste better than bananas?")
+callCount shouldBe 1
+```
+
+[The full example can be found here](src/test/kotlin/io/kotest/cookbook/chapter2Fakery/section3VerifyCalled/VerifyingTestDoubleWasCalledTest.kt)
+
+If this assertion fails, our test stops right there. We might not want that - quite often we want to see the whole picture rather than just the first failure.
+The next example shows how to do that.
+
+
 ### Example: Verifying That Test Double Was Called
 
 Suppose that we are testing an object's method that accepts a `List` and does the following:
@@ -541,7 +567,7 @@ withClue("elements are correctly chunked") {
 }
 ```
 
-Should our implementation of `process` change, the test will still pass as long as the requirements are met.
+Should our implementation of `process` change, this test will still pass as long as the requirements are met.
 For instance, if the `process` method after the change provides the following chunks: `[2, 5], [1, 4], [3]`, the test will still pass.
 <br/>
 <br/>
