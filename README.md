@@ -685,12 +685,12 @@ Let's see how easy it is:
 ```kotlin
     private val results: PlaybackElements<String> = sequence<String> {
         // the code below starts executing after `takeWhile` evaluates to true for the first time
-  processor.cancel()
-  yield("result1")
-  // after `cancel` is called, `takeWhile` will evaluate to false
-  // so the second yield will never be reached
-  yield("result2")
-}.toFunction()
+        processor.cancel()
+        yield("result1")
+        // after `cancel` is called, `takeWhile` will evaluate to false
+        // so the second yield will never be reached
+        yield("result2")
+    }.toFunction()
 
 private val processedTasks = mutableListOf<String>()
 
