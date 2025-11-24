@@ -778,7 +778,39 @@ class RateLimiter(
 The test for `RateLimiter` is straightforward and precise - it will always run with exactly the same outcome:
 
 ```kotlin
+val externalServiceCalls = mutableListOf<String>()
+val instances = sequenceOf(100L, 150L, 200L, 210L)
+    .map { Instant.ofEpochMilli(it) }
+    .toFunction()
+val delays = mutableListOf<Long>()
+val rateLimiter = RateLimiter(
+    externalServiceCall = { request ->
+        externalServiceCalls.add(request)
+    },
+    allowedFrequencyInMilliseconds = 100,
+    getNow = { instances.next() },
+    delayFor = { delayForMillis ->
+        delays.add(delayForMillis)
+    }
+)
+rateLimiter.callService(
+    sequenceOf("task1", "task2")
+)
+withClue("should process all tasks in order") {
+    externalServiceCalls shouldContainExactly listOf("task1", "task2")
+}
+withClue("should have correct delays") {
+    delays shouldContainExactly listOf(50L, 90L)
+}
 ```
+
+[The full example can be found here](src/test/kotlin/io/kotest/cookbook/chapter2Fakery/section5RateLimiter/RateLimiterTest.kt)
+<br/>
+<br/>
+Of course, there are multiple other ways to replace actual time with mock values.
+We shall discuss it more in the chapter about flaky tests.
+With test doubles, however, we can build precise and non-flaky tests with very little effort.
+And we shall not inadvertently break other tests while mocking static functions such as `Instant.now()`.
 
 ### Test Doubles Are Cool, But Don't Overdo It
 
@@ -788,7 +820,7 @@ we end up completely disconnected from the reality.
 <br/>
 <br/>
 If we have any bugs, using real time might sometimes expose them.
-For instance, we can have code that usually works, but fails exactly on an hour boundary, or on a leap year day, or during the week when daylight saving time changes.
+For instance, we can have code that usually works, but fails exactly on an hour boundary, or on February 29th, or during the week when daylight saving time changes.
 Once we have replaced real time with test doubles, that possibility is gone, we won't catch those bugs anymore.
 We shall discuss it more in the chapter about flaky tests.
 <br/>
