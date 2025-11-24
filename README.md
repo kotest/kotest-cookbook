@@ -615,7 +615,7 @@ answers.next() shouldBe 44
 ```
 
 It is important that we are using an extension function on a `Seqeunce` and not on a `List`. 
-The reason is simple - sequences are evaluated lazily, so we invoke any side effects along with providing the values.
+The reason is simple - sequences are evaluated lazily, so we can invoke any side effects along with providing the values.
 The following simple example shows how that works:
 
 ```kotlin
