@@ -8,9 +8,22 @@ Of course we have the ubiquitous `shouldBe` - the Swiss Army knife of assertions
 Surely it can handle almost anything, but for better results we typically go for specialized tools instead of that jack-of-all-trades aka `shouldBe`.
 
 <!-- TOC -->
-* [Assertions](#Assertions)
-  * [Data Classes and shouldBeEqualUsingFields](#matching-data-classes-with-shouldbeequalusingfields)
-  * [Explicitly Matching Fields of Data Classes](#explicitly-matching-fields-of-data-classes)
+* [Kotest Cookbook](#kotest-cookbook)
+  * [Assertions](#assertions)
+    * [Matching Data Classes with `shouldBeEqualUsingFields`](#matching-data-classes-with-shouldbeequalusingfields)
+    * [Explicitly Matching Fields of Data Classes](#explicitly-matching-fields-of-data-classes)
+  * [Using Fakery](#using-fakery)
+    * [Basic Example - Replace A Mock with A Test Double](#basic-example---replace-a-mock-with-a-test-double)
+    * [Example: Verifying That Test Double Was Not Called](#example-verifying-that-test-double-was-not-called)
+    * [Basic Example: Verifying That Test Double Was Called](#basic-example-verifying-that-test-double-was-called)
+    * [Verifying That Test Double Was Called](#verifying-that-test-double-was-called)
+    * [Test Double Returning Different Values on Subsequent Calls With Fakery](#test-double-returning-different-values-on-subsequent-calls-with-fakery)
+    * [Using Fakery To Cancel A Long-Running Loop](#using-fakery-to-cancel-a-long-running-loop)
+    * [Using Fakery To Test Rate Limiter](#using-fakery-to-test-rate-limiter)
+    * [Test Doubles Are Cool, But Don't Overdo It](#test-doubles-are-cool-but-dont-overdo-it)
+  * [Learning Resources](#learning-resources)
+  * [Contributing](#contributing)
+  * [License](#license)
 <!-- TOC -->
 
 ## Assertions
@@ -274,6 +287,516 @@ The main point here in not to use `StringSpec` or `WordSpec` or any other style.
 The main point is to clearly explain why we are expecting exactly these values. 
 Kotest provides multiple ways to do that - choose whatever works best for you.
 
+## Using Fakery
+
+If our dependency is a function, not an object, we don't need to mock - instead we can just build a test double.
+Generally using test doubles instead of mocks makes our lives easier, especially when we are dealing with complex problems.
+Usually we don't need any frameworks whatsoever to build test doubles - just plain simple functions built with Kotlin standard library will do.
+Surely Kotest's fakery comes very handy in some more complex cases, but usually we don't need it.
+<br/>
+<br/>
+We shall get to discussing complex scenarios later in this chapter, but let's start with a few simple ones.
+Even in simple scenarios, using test doubles instead of mocks allows us to solve problems with less fuss.
+
+### Basic Example - Replace A Mock with A Test Double
+
+Suppose our class is named `DecisionsEngine` and it depends on another class named `AnsweringService`:
+
+```kotlin
+class DecisionsEngine(
+    private val answeringService: AnsweringService,
+)
+
+class AnsweringService {
+    fun answer(quuestion: String): Int {
+        TODO()
+    }
+    // (snip)…
+}
+```
+[The full code of AnsweringService can be found here](src/main/kotlin/io/kotest/cookbook/chapter2Fakery/AnsweringService.kt)
+[The full code of DecisionsEngine can be found here](src/main/kotlin/io/kotest/cookbook/chapter2Fakery/DecisionsEngine.kt)
+
+Naturally, in order to test `DecisionsEngine`, we need to mock `AnsweringService`, because our dependency is an object:
+
+```kotlin
+private val answeringService: AnsweringService = run {
+    val ret = mockk<AnsweringService>()
+    every { ret.answer(any()) } returns 42
+    ret
+}
+
+private val decisionsEngine = DecisionsEngine(answeringService)
+```
+[The full example can be found here](src/test/kotlin/io/kotest/cookbook/chapter2Fakery/section1BasicExample/DecisionsEngineWithMockTest.kt)
+
+Note, however, that even though `AnsweringService` has multiple methods, we can fully test `DecisionsEngine` while mocking only one of them - `answer`.
+All other methods of `AnsweringService` are not used by `DecisionsEngine`, so it does not even need to know about them.
+In fact, all that `DecisionsEngine` needs to know about is this: there is a function that takes a `String` question and returns an `Int` answer.
+<br/>
+<br/>
+This is called loose coupling - `DecisionsEngine` only knows about its dependency what's needed for its own purposes.
+So let's refactor `DecisionsEngine` to depend on a function instead of an object. 
+Note that we don't need to change `AnsweringService` at all:
+
+```kotlin
+fun interface Answer {
+    operator fun invoke(question: String): Int
+}
+
+// If we are wiring up dependencies manually, we can use this function:
+// If we are using a DI framework, such as SpringBoot, that is discussed in the next example.
+fun getDecisionsEngine(answeringService: AnsweringService): DecisionsEngineUsingFunction =
+    DecisionsEngineUsingFunction(answeringService::answer)
+
+class DecisionsEngineUsingFunction(
+    private val answer: Answer,
+) {
+    fun decide(question: String): String {
+        return """The decision on "$question" is ${answer(question)}"""
+    }
+}
+```
+
+[The full code of DecisionsEngineUsingFunction can be found here](src/main/kotlin/io/kotest/cookbook/chapter2Fakery/DecisionsEngineUsingFunction.kt)
+<br/>
+<br/>
+What does this refactoring buy us? Injecting a test double instead of a mock is way simpler:
+
+```kotlin
+private val serviceToTest = DecisionsEngineUsingFunction(
+        answer = { 42 }
+    )
+```
+
+[The full example can be found here](src/test/kotlin/io/kotest/cookbook/chapter2Fakery/section1BasicExample/DecisionsEngineWithFunctionTest.kt)
+<br/>
+We don't need any mocking framework at all - just a simple lambda that returns one value.
+Still, this is a relative small gain from this refactoring. We'll get to more significant benefits in more complex scenarios, later.
+<br/>
+<br/>
+What about systems with DI frameworks, such as SpringBoot? Like in the previous example, we can refactor `DecisionsEngine` to depend on an interface instead of an object.
+The following implementation is a bit more involved and it does require to modify `AnsweringService` as follows:
+
+```kotlin
+interface HasAnswer {
+    fun answer(question: String): Int
+}
+
+// Typically this class would be annotated with @Service or another similar annotation
+class AnsweringServiceV2 : HasAnswer {
+    override fun answer(question: String): Int { 
+(snip)
+```
+
+[The full code of AnsweringServiceV2 can be found here](src/main/kotlin/io/kotest/cookbook/chapter2Fakery/AnsweringServiceV2.kt)
+
+That done, `DecisionsEngine` can depend on `HasAnswer` interface instead of `AnsweringServiceV2` class - this is a concept understood and supported by SpringBoot:
+
+```kotlin
+// This class can be annotated with @Service or @Component or another similar annotation
+class DecisionsEngineUsingInterface(
+    private val hasAnswer: HasAnswer, // SpringBoot can inject this dependency
+)
+```
+
+[The full code of DecisionsEngineUsingInterface can be found here](src/main/kotlin/io/kotest/cookbook/chapter2Fakery/DecisionsEngineUsingInterface.kt)
+
+And we can set up our test double in the test as follows:
+
+```kotlin
+    private val serviceToTest = DecisionsEngineUsingInterface(
+        hasAnswer = object: HasAnswer { 
+            override fun answer(question: String): Int = 42
+        }
+    )
+```
+
+Clearly this is more verbose than using a fun interface, and in this case this is no simpler than using a mocking framework.
+So we should use test doubles with DI frameworks only in more complex scenarios, when using an interface instead of a class still brings significant benefits, as we shall discuss in the next examples.
+
+[The full example can be found here](src/test/kotlin/io/kotest/cookbook/chapter2Fakery/section1BasicExample/DecisionsEngineUsingInterfaceTest.kt)
+
+Having discussed this most basic example, let's move on to slightly more involved ones.
+
+### Example: Verifying That Test Double Was Not Called
+
+The simplest way to verify that a test double was not called is to add a failed assertion right inside the test double.
+Suppose, for example, that we need to verify that a decision was made without alerting.
+The following test double will do just that:
+```kotlin
+val serviceToTest = DecisionsEngineWithAlerting(
+    answer = { 42 },
+    alert = { severity: AlertSeverity, message: String ->
+        failSoftly("Alert was called with severity $severity and message: $message")
+    }
+)
+```
+
+If we want to get complete information about all calls made to the test double, we can use a mutable list to record them:
+
+```kotlin
+val alertingCalls = mutableListOf<Pair<AlertSeverity, String>>()
+val serviceToTest = DecisionsEngineWithAlerting(
+    answer = { 42 },
+    alert = { severity: AlertSeverity, message: String ->
+        alertingCalls.add(Pair(severity, message))
+    }
+)
+```
+
+That done, we can utilize the full power of all Kotest's assertion to analyze the recorded calls.
+In this basic example, we don't really need that, one simple assertion will do:
+
+```kotlin
+alertingCalls shouldBe empty()
+```
+
+More advanced examples will follow soon.
+
+[The full example can be found here](src/test/kotlin/io/kotest/cookbook/chapter2Fakery/section2VerifyNotCalled/VerifyingTestDoubleWasNotCalledTest.kt)
+
+As we have seen, we don't need any frameworks to build test doubles and verify that they were not called.
+
+### Basic Example: Verifying That Test Double Was Called
+
+The simplest way to make sure that a test double was called is to increment a counter inside the test double.
+While we are at it, we can also assert that the parameters passed to the test double are as expected:
+
+```kotlin
+var callCount = 0
+val systemToTest = DecisionsEngineUsingFunction(
+    answer = { question : String ->
+        question.shouldNotContain("apple")
+        callCount++
+    }
+)
+systemToTest.decide("Do oranges taste better than bananas?")
+callCount shouldBe 1
+```
+
+[The full example can be found here](src/test/kotlin/io/kotest/cookbook/chapter2Fakery/section3VerifyCalled/VerifyingTestDoubleWasCalledTest.kt)
+
+If this assertion fails, our test stops right there. We might not want that - quite often we want to see the whole picture rather than just the first failure.
+The next example shows how to do that.
+
+
+### Verifying That Test Double Was Called
+
+Suppose that we are testing an object's method that accepts a `List` and does the following:
+
+* split the list into chunks
+* pass each chunk to a dependency for processing
+* both the order of chunks and the order of elements in each chunk do not matter
+
+as is shown in the following code snippet:
+
+```kotlin
+interface ContainerProcessor {
+    fun process(container: Container)
+}
+
+class ElementsProcessorWithObjectDependency(
+  private val containerProcessor: ContainerProcessor,
+  private val maxChunkSize: Int,
+) {
+    fun process(elements: List<Int>) 
+  (snip)...
+
+  data class Container(
+    val elements: List<Int>
+  )
+```
+
+[The full code of ContainerFactoryWithObject can be found here](src/main/kotlin/io/kotest/cookbook/chapter2Fakery/ElementsProcessor.kt)
+
+Traditionally, we would mock the dependency and verify that it was called with expected chunks, as follows:
+
+```kotlin
+private val containerProcessor = run {
+    val ret = mockk<ContainerPrinter>()
+    justRun { ret.process(any()) }
+    ret
+}
+
+val factory = ContainerFactoryWithObject(
+    containerProcessor,
+    maxSize = 2,
+)
+factory.process(listOf(1, 2, 3, 4, 5))
+// Here we are verifying how the factory is implemented,
+// not that it meets the requirements.
+verify(exactly = 1) { containerProcessor.process(Container(listOf(1, 2))) }
+verify(exactly = 1) { containerProcessor.process(Container(listOf(3, 4))) }
+verify(exactly = 1) { containerProcessor.process(Container(listOf(5))) }
+```
+
+In this test we are not verifying that the requirements are met - we are verifying how the factory is implemented.
+And this approach has the following two drawbacks:
+
+* If the implementation of `process` changes, the test will break even if the requirements are still met.
+* The test does not explain what exactly we expect from the output.
+
+[The full example can be found here](src/test/kotlin/io/kotest/cookbook/chapter2Fakery/section3VerifyCalled/ElementsProcessorTestWithMocks.kt)
+
+This is one of those cases where test doubles shine - we can just capture the calls made to the test double and store them in a list, which requires very little learning an is easy to do.
+That done, we can use the full power of Kotlin standard library as well as Kotest's assertions to explain what are the requirements,
+and to assert exactly that they are met,
+without caring about the implementation details.
+Let's see how easy it is:
+
+```kotlin
+val calls = mutableListOf<Container>()
+val serviceToTest = ElementsProcessorWithFunctionDependency(
+    processContainer = { container: Container ->
+        calls.add(container)
+    },
+    maxChunkSize = 2,
+)
+val elements = listOf(1, 2, 3, 4, 5)
+serviceToTest.process(elements)
+// withClue allows us to explain the requirements
+withClue("each element is in exactly one container") {
+    val allElements = calls.flatMap { it.elements }
+    allElements shouldContainExactlyInAnyOrder elements
+}
+withClue("elements are correctly chunked") {
+    calls.forAll { container ->
+        // real life requirements could be way more complex
+        // we need to keep them simple in this example
+        container.elements.size shouldBeIn 1..2
+    }
+}
+```
+
+Should our implementation of `process` change, this test will still pass as long as the requirements are met.
+For instance, if the `process` method after the change provides the following chunks: `[2, 5], [1, 4], [3]`, the test will still pass.
+<br/>
+<br/>
+So far we have been able to get by without any frameworks at all - just plain Kotlin code and Kotest assertions.
+Now let's see how Kotest's fakery can help us in more complex scenarios. It's only two simple functions, 
+
+### Test Double Returning Different Values on Subsequent Calls With Fakery
+
+Mocking libraries such as `Mockk` have a really handy feature - the ability to return different values on subsequent calls, such as:
+
+```kotlin
+every { service.answer(any()) } returns 42 andThen 43 andThen 44
+```
+
+While we generally don't need any mocking library in functional programming, this feature is extremely useful in some cases.
+This is the only case where we need Kotest's fakery, which has only two simple functions. 
+If our test double never needs to throw exceptions, we can use the following extension function:
+
+```kotlin
+// toFunction is an extension function in Kotest's fakery
+val answers = sequenceOf(42, 43, 44).toFunction()
+answers.next() shouldBe 42
+answers.next() shouldBe 43
+answers.next() shouldBe 44
+// Inject this test double as a dependency as follows:
+val decisionsEngine = DecisionsEngineUsingFunction(
+    answer = { answers.next() }
+)
+```
+
+Should we need the test double to throw exceptions on some calls, we can do it as follows:
+
+```kotlin
+val answers = sequenceOf(
+    Result.success(42),
+    Result.failure(Exception("Oops!")),
+    Result.success(44),
+).toFunction()
+answers.next() shouldBe 42
+shouldThrow<Exception> { answers.next() }.message shouldBe "Oops!"
+answers.next() shouldBe 44
+```
+
+It is important that we are using an extension function on a `Seqeunce` and not on a `List`. 
+The reason is simple - sequences are evaluated lazily, so we invoke any side effects along with providing the values.
+The following simple example shows how that works:
+
+```kotlin
+val answers = sequence {
+    println("Side effect before yielding 42")
+    yield(42)
+    println("Side effect before yielding 43")
+    yield(43)
+}.toFunction()
+(answers.next() shouldBe 42).also { println("Next value was: $it") }
+(answers.next() shouldBe 43).also { println("Next value was: $it") }
+/*
+Output:
+Side effect before yielding 42
+Next value was: 42
+Side effect before yielding 43
+Next value was: 43
+ */
+```
+
+[The full example can be found here](src/test/kotlin/io/kotest/cookbook/chapter2Fakery/section3VerifyCalled/ReturningMultipleValuesTest.kt)
+
+Let's discuss a real life example where this feature is really useful.
+
+### Using Fakery To Cancel A Long-Running Loop
+
+Suppose that we have a process that executes tasks in a loop, and that porcess can be cancelled mid-flight and needs to stop as soon as the current task has completed.
+The following code shows the implementation, which is very simple:
+
+```kotlin
+class CancellableTaskProcessor(
+    private val processTask: ProcessTask,
+) {
+    private val isCancelledRef = AtomicBoolean(false)
+    
+    fun processTasks(tasks: Sequence<String>) {
+        for (task in tasks) {
+            if (isCancelledRef.get()) {
+                println("Processing cancelled. Exiting loop.")
+                break
+            }
+            processTask(task)
+        }
+    }
+    
+    fun cancel() = isCancelledRef.set(true)
+}
+```
+
+While the implementation is simple, testing it is requires some orchestration, and the result is less than perfect.
+To test that the loop exits as soon as we've invoked `cancel`, we should need to run something in parallel.
+It could be done with threads or coroutines, but either way we should be doing something like this:
+
+|------------------------|------------------------|
+| Thread 1               | Thread 2               |
+|------------------------|------------------------|
+| Start processing tasks |                        |
+| Process task 1         |                        |
+|                        |       Cancel           |
+
+And then we should verify which tasks were processed.
+<br/>
+<br/>
+While this is clearly doable, it requires a lot of work, and the test may be 
+
+* imprecise - we might not be able to guarantee exactly when the `cancel` call happens, so we cannot expect exactly how many tasks were processed
+* flaky - even though we do not match number of processed tasks exactly, sometimes the test may fail.
+  <br/>
+  <br/>
+Using fakery, we can easily make our test both precise and non-flaky - it will always run with exactly the same outcome.
+Let's see how easy it is:
+
+```kotlin
+private val tasks = sequence<String> {
+    yield("task1")
+  // processor will always be cancelled before processing second task
+    processor.cancel()
+    yield("task2")
+}
+
+private val processedTasks = mutableListOf<String>()
+
+private val processor = CancellableTaskProcessor(
+    processTask = { task -> processedTasks.add(task) }
+)
+
+init {
+    "stops processing tasks when cancelled" {
+        processor.processTasks(tasks)
+        processedTasks shouldBe listOf("task1")
+    }
+}
+```
+
+[The full example can be found here](src/test/kotlin/io/kotest/cookbook/chapter2Fakery/section4ExampleCancel/CancelLongRunningLoopTest.kt)
+
+### Using Fakery To Test Rate Limiter
+
+Suppose that our system calls some external service, and we must never exceed the rate we are calling that service.
+In this example we shall be testing such a rate limiter, using test doubles and Kotest's fakery.
+Suppose the rate limiter is implemented as follows:
+
+```kotlin
+requests.forEach { request ->
+    val startedAt = Instant.now()
+    externalServiceCall(request)
+    val endedAt = Instant.now()
+    val duration = endedAt.toEpochMilli() - startedAt.toEpochMilli()
+    if(duration < allowedFrequencyInMilliseconds) {
+        val sleepTime = allowedFrequencyInMilliseconds - duration
+        delay(sleepTime)
+    }
+}
+```
+
+[The full code of RateLimiter can be found here](src/main/kotlin/io/kotest/cookbook/chapter2Fakery/RateLimiter.kt)
+
+While this implementation is simple, testing it is not so easy. 
+We definitely can record the times when the external service started and stopped processing each task,
+and from that we can estimate how long the rate limiter delayed between calls.
+Our estimates, however, will be imprecise, and building such a test will require some work.
+Testing this code with test doubles is much easier.
+<br/>
+<br/>
+Let us replace hardcoded calls to `Instant.now()` and `delay()` with injectable dependencies - that will allow us to know for how long we delay between calls to external service. 
+The following code is very easy to test with test doubles:
+
+```kotlin
+fun interface ExternalServiceCall {
+    operator fun invoke(request: String)
+}
+
+fun interface GetNow {
+    operator fun invoke(): Instant
+}
+
+fun interface DelayFor {
+    suspend operator fun invoke(milliseconds: Long)
+}
+
+class RateLimiter(
+  private val externalServiceCall: ExternalServiceCall,
+  private val allowedFrequencyInMilliseconds: Int,
+  private val getNow: GetNow,
+  private val delayFor: DelayFor,
+) {
+  suspend fun callService(requests: Sequence<String>) {
+    requests.forEach { request ->
+      val startedAt = getNow()
+      externalServiceCall(request)
+      val endedAt = getNow()
+      val duration = endedAt.toEpochMilli() - startedAt.toEpochMilli()
+      if(duration < allowedFrequencyInMilliseconds) {
+        val sleepTime = allowedFrequencyInMilliseconds - duration
+        delayFor(sleepTime)
+      }
+    }
+  }
+}
+```
+
+The test for `RateLimiter` is straightforward and precise - it will always run with exactly the same outcome:
+
+```kotlin
+```
+
+### Test Doubles Are Cool, But Don't Overdo It
+
+No tool is the best fit for all purposes. Test doubles are no exception.
+For example, when we replace calls to `Instant.now()` and `delay()` with dependencies, 
+we end up completely disconnected from the reality. 
+<br/>
+<br/>
+If we have any bugs, using real time might sometimes expose them.
+For instance, we can have code that usually works, but fails exactly on an hour boundary, or on a leap year day, or during the week when daylight saving time changes.
+Once we have replaced real time with test doubles, that possibility is gone, we won't catch those bugs anymore.
+We shall discuss it more in the chapter about flaky tests.
+<br/>
+<br/>
+The gist of this chapter was to show use cases when test doubles really shine, not do discourage using mocks altogether.
+Mocking libraries such as `mockk` are massively powerful and useful, but we are suggesting to complement them with test doubles in functional programming, especially in more difficult situations.
+
 ## Learning Resources
 
 - [Kotest Documentation](https://kotest.io/)
@@ -281,7 +804,8 @@ Kotest provides multiple ways to do that - choose whatever works best for you.
 
 ## Contributing
 
-Feel free to submit pull requests or create issues.
+Feel free to submit pull requests or create issues. 
+[Contributing Guidelines](CONTRIBUTING.md)
 
 ## License
 
