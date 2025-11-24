@@ -12,9 +12,9 @@ Surely it can handle almost anything, but for better results we typically go for
   * [Assertions](#assertions)
     * [Matching Data Classes with `shouldBeEqualUsingFields`](#matching-data-classes-with-shouldbeequalusingfields)
     * [Explicitly Matching Fields of Data Classes](#explicitly-matching-fields-of-data-classes)
-  * [Using Fakery](#using-fakery)
+  * [Using Test Doubles And Fakery](#using-test-doubles-and-fakery)
     * [Basic Example - Replace A Mock with A Test Double](#basic-example---replace-a-mock-with-a-test-double)
-    * [Example: Verifying That Test Double Was Not Called](#example-verifying-that-test-double-was-not-called)
+    * [Verifying That Test Double Was Not Called](#verifying-that-test-double-was-not-called)
     * [Basic Example: Verifying That Test Double Was Called](#basic-example-verifying-that-test-double-was-called)
     * [Verifying That Test Double Was Called](#verifying-that-test-double-was-called)
     * [Test Double Returning Different Values on Subsequent Calls With Fakery](#test-double-returning-different-values-on-subsequent-calls-with-fakery)
@@ -287,7 +287,7 @@ The main point here is not to use `StringSpec` or `WordSpec` or any other style.
 The main point is to clearly explain why we are expecting exactly these values. 
 Kotest provides multiple ways to do that - choose whatever works best for you.
 
-## Using Fakery
+## Using Test Doubles And Fakery
 
 If our dependency is a function, not an object, we don't need to mock - instead we can just build a test double.
 Generally using test doubles instead of mocks makes our lives easier, especially when we are dealing with complex problems.
@@ -420,7 +420,7 @@ So we should use test doubles with DI frameworks only in more complex scenarios,
 
 Having discussed this most basic example, let's move on to slightly more involved ones.
 
-### Example: Verifying That Test Double Was Not Called
+### Verifying That Test Double Was Not Called
 
 The simplest way to verify that a test double was not called is to add a failed assertion right inside the test double.
 Suppose, for example, that we need to verify that a decision was made without alerting.
