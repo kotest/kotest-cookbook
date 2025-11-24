@@ -9,7 +9,7 @@ import io.kotest.matchers.shouldBe
 
 class VerifyingTestDoubleWasNotCalledTest: StringSpec() {
     init {
-        "alerting should not be called - fail the first time it did and".config(enabled = false) {
+        "alerting should not be called - fail the first time it does".config(enabled = false) {
             val serviceToTest = DecisionsEngineWithAlerting(
                 answer = { 42 },
                 alert = { severity: AlertSeverity, message: String ->
