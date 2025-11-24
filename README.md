@@ -51,10 +51,10 @@ If, however, we are comparing complex objects with many fields, this format of o
 <br/>
 <br/>
 For more detailed description of the differences for data classes,  
-we can use `shouldBeEqualToComparingFields` and `shouldBeEqualToIgnoringFields` assertions, as follows:
+we can use `shouldBeEqualUsingFields` assertion, as follows:
 
 ```kotlin
-largeRedSweetApple shouldBeEqualUsingFields  largeRedTartApple
+largeRedSweetApple shouldBeEqualUsingFields largeRedTartApple
 ```
 
 which generates the output which is much easier to read:
@@ -74,7 +74,7 @@ So `shouldBeEqualUsingFields` exposes differences in a very readable way. But it
 
 * deserialize a message correctly
 * correctly map data from one layer to another
-* read correct date from the database
+* read correct data from the database
 
 It's also a good choice when we need to move quickly and are not overly concerned about long-term maintainability of the tests.
 <br/>
@@ -89,7 +89,7 @@ While high-maintenance tests is an interesting topic and it clearly deserves a d
 <br/>
 Fields such as timestamps, uuids, and auto-generated ids are commonly ignored in such tests.
 To accomplish that, we can customize `shouldBeEqualUsingFields` to provide non-default matchers for some fields or to ignore them altogether.
-For instance, the following code ignores `createdAt` field when comparing two objects:
+For instance, the following code ignores the `createdAt` field when comparing two objects:
 
 ```kotlin
 val box = Box(
@@ -283,7 +283,7 @@ Actual   :4
 [The full example can be found here](src/test/kotlin/io/kotest/cookbook/chapter1Assertions/section1DataClasses/ClueTest.kt)
 <br/>
 <br/>
-The main point here in not to use `StringSpec` or `WordSpec` or any other style. 
+The main point here is not to use `StringSpec` or `WordSpec` or any other style. 
 The main point is to clearly explain why we are expecting exactly these values. 
 Kotest provides multiple ways to do that - choose whatever works best for you.
 
@@ -308,7 +308,7 @@ class DecisionsEngine(
 )
 
 class AnsweringService {
-    fun answer(quuestion: String): Int {
+    fun answer(question: String): Int {
         TODO()
     }
     // (snip)…
@@ -390,7 +390,7 @@ class AnsweringServiceV2 : HasAnswer {
 (snip)
 ```
 
-[The full code of AnsweringServiceV2 can be found here](src/main/kotlin/io/kotest/cookbook/chapter2Fakery/AnsweringServiceV2.kt)
+[The full code of AnsweringServiceV2 can be found here](src/main/kotlin/io/kotest/cookbook/chapter2Fakery/AnsweringServiceWithInterface.kt)
 
 That done, `DecisionsEngine` can depend on `HasAnswer` interface instead of `AnsweringServiceV2` class - this is a concept understood and supported by SpringBoot:
 
@@ -450,7 +450,7 @@ That done, we can utilize the full power of all Kotest's assertion to analyze th
 In this basic example, we don't really need that, one simple assertion will do:
 
 ```kotlin
-alertingCalls shouldBe empty()
+alertingCalls.shouldBeEmpty()
 ```
 
 More advanced examples will follow soon.
@@ -470,6 +470,7 @@ val systemToTest = DecisionsEngineUsingFunction(
     answer = { question : String ->
         question.shouldNotContain("apple")
         callCount++
+        42
     }
 )
 systemToTest.decide("Do oranges taste better than bananas?")
@@ -522,7 +523,6 @@ private val containerProcessor = run {
 
 val factory = ContainerFactoryWithObject(
     containerProcessor,
-    maxSize = 2,
 )
 factory.process(listOf(1, 2, 3, 4, 5))
 // Here we are verifying how the factory is implemented,
@@ -642,7 +642,7 @@ Let's discuss a real life example where this feature is really useful.
 
 ### Using Fakery To Cancel A Long-Running Loop
 
-Suppose that we have a process that executes tasks in a loop, and that porcess can be cancelled mid-flight and needs to stop as soon as the current task has completed.
+Suppose that we have a process that executes tasks in a loop, and that process can be cancelled mid-flight and needs to stop as soon as the current task has completed.
 The following code shows the implementation, which is very simple:
 
 ```kotlin
@@ -650,24 +650,19 @@ class CancellableTaskProcessor(
     private val processTask: ProcessTask,
 ) {
     private val isCancelledRef = AtomicBoolean(false)
-    
-    fun processTasks(tasks: Sequence<String>) {
-        for (task in tasks) {
-            if (isCancelledRef.get()) {
-                println("Processing cancelled. Exiting loop.")
-                break
-            }
-            processTask(task)
-        }
-    }
+
+  fun processTasks(tasks: Sequence<String>) = tasks
+    .takeWhile { !isCancelledRef.get() }
+    .map { processTask(it) }
+    .toList()
     
     fun cancel() = isCancelledRef.set(true)
 }
 ```
 
-While the implementation is simple, testing it is requires some orchestration, and the result is less than perfect.
-To test that the loop exits as soon as we've invoked `cancel`, we should need to run something in parallel.
-It could be done with threads or coroutines, but either way we should be doing something like this:
+While the implementation is simple, testing it requires some orchestration, and the result is less than perfect.
+To test that the loop exits as soon as we've invoked `cancel`, we would need to run something in parallel.
+It could be done with threads or coroutines, but either way we would be doing something like this:
 
 | Thread 1               | Thread 2               |
 |------------------------|------------------------|
@@ -675,10 +670,10 @@ It could be done with threads or coroutines, but either way we should be doing s
 | Process task 1         |                        |
 |                        |       Cancel           |
 
-And then we should verify which tasks were processed.
+And then we would verify which tasks were processed.
 <br/>
 <br/>
-While this is clearly doable, it requires a lot of work, and the test may be 
+While this is clearly doable, it requires a lot of work, and the test may be:
 
 * imprecise - we might not be able to guarantee exactly when the `cancel` call happens, so we cannot expect exactly how many tasks were processed
 * flaky - even though we do not match number of processed tasks exactly, sometimes the test may fail.
@@ -688,12 +683,14 @@ Using fakery, we can easily make our test both precise and non-flaky - it will a
 Let's see how easy it is:
 
 ```kotlin
-private val tasks = sequence<String> {
-    yield("task1")
-  // processor will always be cancelled before processing second task
-    processor.cancel()
-    yield("task2")
-}
+    private val results: PlaybackElements<String> = sequence<String> {
+        // the code below starts executing after `takeWhile` evaluates to true for the first time
+        processor.cancel()
+        yield("result1")
+        // after `cancel` is called, `takeWhile` will evaluate to false
+        // so the second yield will never be reached
+        yield("result2")
+    }.toFunction()
 
 private val processedTasks = mutableListOf<String>()
 
@@ -739,7 +736,7 @@ Our estimates, however, will be imprecise, and building such a test will require
 Testing this code with test doubles is much easier.
 <br/>
 <br/>
-Let us replace hardcoded calls to `Instant.now()` and `delay()` with injectable dependencies - that will allow us to know for how long we delay between calls to external service. 
+Let us replace hardcoded calls to `Instant.now()` and `delay()` with injectable dependencies - that will allow us to know exactly for how long we delay between calls to external service. 
 The following code is very easy to test with test doubles:
 
 ```kotlin
@@ -776,10 +773,44 @@ class RateLimiter(
 }
 ```
 
+[The full code of RateLimiter with dependencies can be found here](src/main/kotlin/io/kotest/cookbook/chapter2Fakery/RateLimiter.kt)
+
 The test for `RateLimiter` is straightforward and precise - it will always run with exactly the same outcome:
 
 ```kotlin
+val externalServiceCalls = mutableListOf<String>()
+val instances = sequenceOf(100L, 150L, 200L, 210L)
+    .map { Instant.ofEpochMilli(it) }
+    .toFunction()
+val delays = mutableListOf<Long>()
+val rateLimiter = RateLimiter(
+    externalServiceCall = { request ->
+        externalServiceCalls.add(request)
+    },
+    allowedFrequencyInMilliseconds = 100,
+    getNow = { instances.next() },
+    delayFor = { delayForMillis ->
+        delays.add(delayForMillis)
+    }
+)
+rateLimiter.callService(
+    sequenceOf("task1", "task2")
+)
+withClue("should process all tasks in order") {
+    externalServiceCalls shouldContainExactly listOf("task1", "task2")
+}
+withClue("should have correct delays") {
+    delays shouldContainExactly listOf(50L, 90L)
+}
 ```
+
+[The full example can be found here](src/test/kotlin/io/kotest/cookbook/chapter2Fakery/section5RateLimiter/RateLimiterTest.kt)
+<br/>
+<br/>
+Of course, there are multiple other ways to replace actual time with mock values.
+We shall discuss it more in the chapter about flaky tests.
+With test doubles, however, we can build precise and non-flaky tests with very little effort.
+And we shall not inadvertently break other tests while mocking static functions such as `Instant.now()`.
 
 ### Test Doubles Are Cool, But Don't Overdo It
 
@@ -789,12 +820,12 @@ we end up completely disconnected from the reality.
 <br/>
 <br/>
 If we have any bugs, using real time might sometimes expose them.
-For instance, we can have code that usually works, but fails exactly on an hour boundary, or on a leap year day, or during the week when daylight saving time changes.
+For instance, we can have code that usually works, but fails exactly on an hour boundary, or on February 29th, or during the week when daylight saving time changes.
 Once we have replaced real time with test doubles, that possibility is gone, we won't catch those bugs anymore.
 We shall discuss it more in the chapter about flaky tests.
 <br/>
 <br/>
-The gist of this chapter was to show use cases when test doubles really shine, not do discourage using mocks altogether.
+The gist of this chapter was to show use cases when test doubles really shine, not to discourage using mocks altogether.
 Mocking libraries such as `mockk` are massively powerful and useful, but we are suggesting to complement them with test doubles in functional programming, especially in more difficult situations.
 
 ## Learning Resources
