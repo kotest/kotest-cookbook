@@ -673,7 +673,7 @@ It could be done with threads or coroutines, but either way we would be doing so
 And then we would verify which tasks were processed.
 <br/>
 <br/>
-While this is clearly doable, it requires a lot of work, and the test may be: 
+While this is clearly doable, it requires a lot of work, and the test may be:
 
 * imprecise - we might not be able to guarantee exactly when the `cancel` call happens, so we cannot expect exactly how many tasks were processed
 * flaky - even though we do not match number of processed tasks exactly, sometimes the test may fail.
