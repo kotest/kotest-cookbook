@@ -669,7 +669,6 @@ While the implementation is simple, testing it is requires some orchestration, a
 To test that the loop exits as soon as we've invoked `cancel`, we should need to run something in parallel.
 It could be done with threads or coroutines, but either way we should be doing something like this:
 
-|------------------------|------------------------|
 | Thread 1               | Thread 2               |
 |------------------------|------------------------|
 | Start processing tasks |                        |
