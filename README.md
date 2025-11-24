@@ -736,7 +736,7 @@ Our estimates, however, will be imprecise, and building such a test will require
 Testing this code with test doubles is much easier.
 <br/>
 <br/>
-Let us replace hardcoded calls to `Instant.now()` and `delay()` with injectable dependencies - that will allow us to know for how long we delay between calls to external service. 
+Let us replace hardcoded calls to `Instant.now()` and `delay()` with injectable dependencies - that will allow us to know exactly for how long we delay between calls to external service. 
 The following code is very easy to test with test doubles:
 
 ```kotlin
@@ -772,6 +772,8 @@ class RateLimiter(
   }
 }
 ```
+
+[The full code of RateLimiter with dependencies can be found here](src/main/kotlin/io/kotest/cookbook/chapter2Fakery/RateLimiter.kt)
 
 The test for `RateLimiter` is straightforward and precise - it will always run with exactly the same outcome:
 
