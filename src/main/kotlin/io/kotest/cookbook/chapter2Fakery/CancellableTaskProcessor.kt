@@ -2,9 +2,6 @@ package io.kotest.cookbook.chapter2Fakery
 
 import java.util.concurrent.atomic.AtomicBoolean
 
-fun interface GetTasks {
-    operator fun invoke(): Sequence<String>
-}
 
 fun interface ProcessTask {
     operator fun invoke(task: String) : String
