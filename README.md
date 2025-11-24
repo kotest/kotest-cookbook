@@ -315,6 +315,7 @@ class AnsweringService {
 }
 ```
 [The full code of AnsweringService can be found here](src/main/kotlin/io/kotest/cookbook/chapter2Fakery/AnsweringService.kt)
+<br/>
 [The full code of DecisionsEngine can be found here](src/main/kotlin/io/kotest/cookbook/chapter2Fakery/DecisionsEngine.kt)
 
 Naturally, in order to test `DecisionsEngine`, we need to mock `AnsweringService`, because our dependency is an object:
