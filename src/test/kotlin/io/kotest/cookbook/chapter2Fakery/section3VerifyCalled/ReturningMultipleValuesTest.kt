@@ -50,14 +50,15 @@ Next value was: 43
              */
         }
         "returning multiple values or throwing an Exception via a test double" {
+            val exceptionToThrow = Exception("Oops!")
             // toFunction is an extension function in Kotest's fakery
             val answers = sequenceOf(
                 Result.success(42),
-                Result.failure(Exception("Oops!")),
+                Result.failure(exceptionToThrow),
                 Result.success(44),
             ).toFunction()
             answers.next() shouldBe 42
-            shouldThrow<Exception> { answers.next() }.message shouldBe "Oops!"
+            shouldThrow<Exception> { answers.next() } shouldBe exceptionToThrow
             answers.next() shouldBe 44
         }
     }

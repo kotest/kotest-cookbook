@@ -1,6 +1,7 @@
 package io.kotest.cookbook.chapter2Fakery
 
-// Typically this class would be annotated with @Service or another similar annotation
+// If we are using a DI framework such as SpringBoot,
+// then this class would be annotated with @Service or another similar annotation
 class DecisionsEngine(
     private val answeringService: AnsweringService,
 ) {

@@ -18,14 +18,15 @@ class ElementsProcessorTestWithTestDoubles: StringSpec() {
                 },
                 maxChunkSize = 2,
             )
-            val elements = listOf(1, 2, 3, 4, 5)
-            serviceToTest.process(elements)
+            val elementsToProcess = listOf(1, 2, 3, 4, 5)
+            serviceToTest.process(elementsToProcess)
             withClue("each element is in exactly one container") {
-                val allElements = calls.flatMap { it.elements }
-                allElements shouldContainExactlyInAnyOrder elements
+                val processedElements = calls.flatMap { it.elements }
+                processedElements shouldContainExactlyInAnyOrder elementsToProcess
             }
             withClue("elements are correctly chunked") {
                 calls.forAll { container ->
+                    // in real life the condition would be more complex
                     container.elements.size shouldBeIn 1..2
                 }
             }

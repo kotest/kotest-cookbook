@@ -16,9 +16,11 @@ Surely it can handle almost anything, but for better results we typically go for
     * [Basic Example - Replace A Mock with A Test Double](#basic-example---replace-a-mock-with-a-test-double)
     * [Example: Verifying That Test Double Was Not Called](#example-verifying-that-test-double-was-not-called)
     * [Basic Example: Verifying That Test Double Was Called](#basic-example-verifying-that-test-double-was-called)
-    * [Example: Verifying That Test Double Was Called](#example-verifying-that-test-double-was-called)
+    * [Verifying That Test Double Was Called](#verifying-that-test-double-was-called)
     * [Test Double Returning Different Values on Subsequent Calls With Fakery](#test-double-returning-different-values-on-subsequent-calls-with-fakery)
-    * [Example: Using Fakery To Cancel A Long-Running Loop](#example-using-fakery-to-cancel-a-long-running-loop)
+    * [Using Fakery To Cancel A Long-Running Loop](#using-fakery-to-cancel-a-long-running-loop)
+    * [Using Fakery To Test Rate Limiter](#using-fakery-to-test-rate-limiter)
+    * [Test Doubles Are Cool, But Don't Overdo It](#test-doubles-are-cool-but-dont-overdo-it)
   * [Learning Resources](#learning-resources)
   * [Contributing](#contributing)
   * [License](#license)
@@ -479,7 +481,7 @@ If this assertion fails, our test stops right there. We might not want that - qu
 The next example shows how to do that.
 
 
-### Example: Verifying That Test Double Was Called
+### Verifying That Test Double Was Called
 
 Suppose that we are testing an object's method that accepts a `List` and does the following:
 
@@ -637,7 +639,7 @@ Next value was: 43
 
 Let's discuss a real life example where this feature is really useful.
 
-### Example: Using Fakery To Cancel A Long-Running Loop
+### Using Fakery To Cancel A Long-Running Loop
 
 Suppose that we have a process that executes tasks in a loop, and that porcess can be cancelled mid-flight and needs to stop as soon as the current task has completed.
 The following code shows the implementation, which is very simple:
@@ -709,7 +711,7 @@ init {
 
 [The full example can be found here](src/test/kotlin/io/kotest/cookbook/chapter2Fakery/section4ExampleCancel/CancelLongRunningLoopTest.kt)
 
-### Example: Using Fakery To Test Rate Limiter
+### Using Fakery To Test Rate Limiter
 
 Suppose that our system calls some external service, and we must never exceed the rate we are calling that service.
 In this example we shall be testing such a rate limiter, using test doubles and Kotest's fakery.
@@ -779,7 +781,7 @@ The test for `RateLimiter` is straightforward and precise - it will always run w
 ```kotlin
 ```
 
-### Test Doubles - Don't Overdo It
+### Test Doubles Are Cool, But Don't Overdo It
 
 No tool is the best fit for all purposes. Test doubles are no exception.
 For example, when we replace calls to `Instant.now()` and `delay()` with dependencies, 
