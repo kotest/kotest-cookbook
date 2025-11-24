@@ -10,10 +10,7 @@ import io.kotest.matchers.shouldBe
 class CancelLongRunningLoopTest: StringSpec() {
     override fun isolationMode() = IsolationMode.InstancePerRoot
 
-    private val tasks = sequence<String> {
-        yield("task1")
-        yield("task2")
-    }
+    private val tasks = sequenceOf("task1", "task2",)
 
     private val results: PlaybackElements<String> = sequence<String> {
         processor.cancel()

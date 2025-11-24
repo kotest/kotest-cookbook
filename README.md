@@ -650,16 +650,11 @@ class CancellableTaskProcessor(
     private val processTask: ProcessTask,
 ) {
     private val isCancelledRef = AtomicBoolean(false)
-    
-    fun processTasks(tasks: Sequence<String>) {
-        for (task in tasks) {
-            if (isCancelledRef.get()) {
-                println("Processing cancelled. Exiting loop.")
-                break
-            }
-            processTask(task)
-        }
-    }
+
+  fun processTasks(tasks: Sequence<String>) = tasks
+    .takeWhile { !isCancelledRef.get() }
+    .map { processTask(it) }
+    .toList()
     
     fun cancel() = isCancelledRef.set(true)
 }
@@ -688,12 +683,14 @@ Using fakery, we can easily make our test both precise and non-flaky - it will a
 Let's see how easy it is:
 
 ```kotlin
-private val tasks = sequence<String> {
-    yield("task1")
-  // processor will always be cancelled before processing second task
-    processor.cancel()
-    yield("task2")
-}
+    private val results: PlaybackElements<String> = sequence<String> {
+        // the code below starts executing after `takeWhile` evaluates to true for the first time
+  processor.cancel()
+  yield("result1")
+  // after `cancel` is called, `takeWhile` will evaluate to false
+  // so the second yield will never be reached
+  yield("result2")
+}.toFunction()
 
 private val processedTasks = mutableListOf<String>()
 

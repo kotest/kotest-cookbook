@@ -16,14 +16,7 @@ class CancellableTaskProcessor(
     private val isCancelledRef = AtomicBoolean(false)
 
     fun processTasks(tasks: Sequence<String>) = tasks
-        .takeWhile {
-        if(isCancelledRef.get()) {
-            println("Processing cancelled, stopping task processing.")
-        } else {
-            println("Processing task: $it")
-        }
-        !isCancelledRef.get()
-    }
+        .takeWhile { !isCancelledRef.get() }
         .map { processTask(it) }
         .toList()
 
