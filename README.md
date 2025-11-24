@@ -414,7 +414,7 @@ And we can set up our test double in the test as follows:
 ```
 
 Clearly this is more verbose than using a fun interface, and in this case this is no simpler than using a mocking framework.
-So we should use test doubles with DI frameworks only in more complex scenarios, when using an interface instead of a class still brings significant benefits, as we shall discuss in the next examples.
+So we should use test doubles with DI frameworks only in more complex scenarios, when using a test double instead of a mock still brings significant benefits, as we shall discuss in the next examples.
 
 [The full example can be found here](src/test/kotlin/io/kotest/cookbook/chapter2Fakery/section1BasicExample/DecisionsEngineUsingInterfaceTest.kt)
 
