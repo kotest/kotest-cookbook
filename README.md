@@ -125,10 +125,10 @@ apple shouldBeEqualUsingFields {
 
 While the ability to ignore fields or override field matchers in `shouldBeEqualUsingFields` is definitely handy, we should not overdo it. 
 While it's totally fine to ignore or override one or two fields, if we find ourselves doing that for many fields, we should start considering other approaches.
-There are multiple ways to match data classes - it might be easier to just explicitly match the fields we want using the matchers of our choice.
+There are multiple ways to match data classes - it might be easier to explicitly match the fields we want using the matchers of our choice.
 <br/>
 <br/>
-In the next few examples we shall do just that.
+In the next few examples we shall do that.
 
 ### Explicitly Matching Fields of Data Classes
 
@@ -217,7 +217,7 @@ Using one of the simplest testing styles, the `StringSpec`, we can clearly expla
 <br/>
 <br/>
 Let's discuss the use of `assertSoftly` here. Without it, the first failed assertion aborts the test, and we wouldn't see the results of other assertions.
-And it really helps to see the whole picture, not just an individual mismatch.
+And it really helps to see the whole picture, not only the first individual mismatch.
 <br/>
 <br/>
 Let's have a look at another approach, using `withClue` to accomplish exactly the same thing:
@@ -289,9 +289,9 @@ Kotest provides multiple ways to do that - choose whatever works best for you.
 
 ## Using Test Doubles And Fakery
 
-If our dependency is a function, not an object, we don't need to mock - instead we can just build a test double.
+If our dependency is a function, not an object, we don't need to mock - instead we can build a test double.
 Generally using test doubles instead of mocks makes our lives easier, especially when we are dealing with complex problems.
-Usually we don't need any frameworks whatsoever to build test doubles - just plain simple functions built with Kotlin standard library will do.
+Usually we don't need any frameworks whatsoever to build test doubles - plain simple functions built with Kotlin standard library will do.
 Surely Kotest's fakery comes very handy in some more complex cases, but usually we don't need it.
 <br/>
 <br/>
@@ -362,7 +362,7 @@ class DecisionsEngineUsingFunction(
 [The full code of DecisionsEngineUsingFunction can be found here](src/main/kotlin/io/kotest/cookbook/chapter2Fakery/DecisionsEngineUsingFunction.kt)
 <br/>
 <br/>
-What does this refactoring buy us? Injecting a test double instead of a mock is way simpler:
+What does this refactoring buy us? Injecting a test double instead of a mock is simpler:
 
 ```kotlin
 private val serviceToTest = DecisionsEngineUsingFunction(
@@ -372,7 +372,7 @@ private val serviceToTest = DecisionsEngineUsingFunction(
 
 [The full example can be found here](src/test/kotlin/io/kotest/cookbook/chapter2Fakery/section1BasicExample/DecisionsEngineWithFunctionTest.kt)
 <br/>
-We don't need any mocking framework at all - just a simple lambda that returns one value.
+We don't need any mocking framework at all - a simple lambda that returns one value will do.
 Still, this is a relative small gain from this refactoring. We'll get to more significant benefits in more complex scenarios, later.
 <br/>
 <br/>
@@ -424,7 +424,7 @@ Having discussed this most basic example, let's move on to slightly more involve
 
 The simplest way to verify that a test double was not called is to add a failed assertion right inside the test double.
 Suppose, for example, that we need to verify that a decision was made without alerting.
-The following test double will do just that:
+The following test double for `alert` does that:
 ```kotlin
 val serviceToTest = DecisionsEngineWithAlerting(
     answer = { 42 },
@@ -447,7 +447,7 @@ val serviceToTest = DecisionsEngineWithAlerting(
 ```
 
 That done, we can utilize the full power of all Kotest's assertion to analyze the recorded calls.
-In this basic example, we don't really need that, one simple assertion will do:
+In this basic example, we don't really need anything complicated, one short assertion will do:
 
 ```kotlin
 alertingCalls.shouldBeEmpty()
@@ -479,7 +479,7 @@ callCount shouldBe 1
 
 [The full example can be found here](src/test/kotlin/io/kotest/cookbook/chapter2Fakery/section3VerifyCalled/VerifyingTestDoubleWasCalledTest.kt)
 
-If this assertion fails, our test stops right there. We might not want that - quite often we want to see the whole picture rather than just the first failure.
+If this assertion fails, our test stops right there. We might not want that - quite often we want to see the whole picture rather than the first failure.
 The next example shows how to do that.
 
 
@@ -540,11 +540,11 @@ And this approach has the following two drawbacks:
 
 [The full example can be found here](src/test/kotlin/io/kotest/cookbook/chapter2Fakery/section3VerifyCalled/ElementsProcessorTestWithMocks.kt)
 
-This is one of those cases where test doubles shine - we can just capture the calls made to the test double and store them in a list, which requires very little learning an is easy to do.
+This is one of those cases where test doubles shine - we can capture the calls made to the test double and store them in a list, which requires very little learning and is straightforward to do.
 That done, we can use the full power of Kotlin standard library as well as Kotest's assertions to explain what are the requirements,
 and to assert exactly that they are met,
 without caring about the implementation details.
-Let's see how easy it is:
+Let's see how straightforward it is:
 
 ```kotlin
 val calls = mutableListOf<Container>()
@@ -555,7 +555,7 @@ val serviceToTest = ElementsProcessorWithFunctionDependency(
     maxChunkSize = 2,
 )
 val elementsToProcess = listOf(1, 2, 3, 4, 5)
-serviceToTest.process(elements)
+serviceToTest.process(elementsToProcess)
 // withClue allows us to explain the requirements
 withClue("each element is in exactly one container") {
     val processedElements = calls.flatMap { it.elements }
@@ -563,7 +563,7 @@ withClue("each element is in exactly one container") {
 }
 withClue("elements are correctly chunked") {
     calls.forAll { container ->
-        // real life requirements could be way more complex
+        // real life requirements could be more complex
         // we need to keep them simple in this example
         container.elements.size shouldBeIn 1..2
     }
@@ -574,7 +574,7 @@ Should our implementation of `process` change, this test will still pass as long
 For instance, if the `process` method after the change provides the following chunks: `[2, 5], [1, 4], [3]`, the test will still pass.
 <br/>
 <br/>
-So far we have been able to get by without any frameworks at all - just plain Kotlin code and Kotest assertions.
+So far we have been able to get by without any frameworks at all - only plain Kotlin code and Kotest assertions.
 Now let's see how Kotest's fakery can help us in more complex scenarios. It's only two simple functions, 
 
 ### Test Double Returning Different Values on Subsequent Calls With Fakery
@@ -616,7 +616,7 @@ answers.next() shouldBe 44
 
 It is important that we are using an extension function on a `Sequence` and not on a `List`. 
 The reason is simple - sequences are evaluated lazily, so we can invoke any side effects along with providing the values.
-The following simple example shows how that works:
+The following example shows how that works:
 
 ```kotlin
 val answers = sequence {
@@ -660,7 +660,7 @@ class CancellableTaskProcessor(
 }
 ```
 
-While the implementation is simple, testing it requires some orchestration, and the result is less than perfect.
+While the implementation is simple, writing tests for it requires some orchestration, a lot of work, and the result is less than perfect.
 To test that the loop exits as soon as we've invoked `cancel`, we would need to run something in parallel.
 It could be done with threads or coroutines, but either way we would be doing something like this:
 
@@ -680,7 +680,7 @@ While this is clearly doable, it requires a lot of work, and the test may be:
   <br/>
   <br/>
 Using fakery, we can easily make our test both precise and non-flaky - it will always run with exactly the same outcome.
-Let's see how easy it is:
+Let's see how straightforward it is:
 
 ```kotlin
     private val results: PlaybackElements<String> = sequence<String> {
