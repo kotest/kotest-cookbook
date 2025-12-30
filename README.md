@@ -828,6 +828,40 @@ We shall discuss it more in the chapter about flaky tests.
 The gist of this chapter was to show use cases when test doubles really shine, not to discourage using mocks altogether.
 Mocking libraries such as `mockk` are massively powerful and useful, but we are suggesting to complement them with test doubles in functional programming, especially in more difficult situations.
 
+## Flaky Tests
+
+We'll discuss what Kotest has to offer to deal with flaky tests.
+
+### Using Eventually
+
+Whenever a test intermittenyly fails, it's common to just wrap it in `eventually`, as follows:
+
+```kotlin
+eventually(5.seconds) {
+  runTestThatIntermittenlyFails()
+}
+```
+
+And in some cases this is the right thing to do. For instance, if we are running an integration test as follows:
+
+* kafka is running in a Docker container
+* we publish a message
+* we test that the message has been consumed correctly
+
+In this situation we have no control over how long will it take for the message to get consumed. Eventually, it should happen, so we shall keep running our test until it succeeds:
+
+```kotlin
+publishMessage
+eventually(5.seconds) {
+  verifyThatMessageCOnsumed()
+}
+```
+
+In this case `eventually` is a perfect tool for the task at hand. It will keep trying until success, but not any longer than needed.
+<br/>
+<br/>
+However, every time we are wrapping a flaky test in `eventually` we need to understand why the test is flaky. And in many cases we should consider other alternatives.
+
 ## Learning Resources
 
 - [Kotest Documentation](https://kotest.io/)
