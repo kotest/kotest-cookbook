@@ -870,6 +870,13 @@ Our code might fail to corretly account for all edge cases, and as a result our 
 * on the day or week when the time changes to or from daylight savings
 * when a method starts running on one day, hour, or minute, and completes on the next time period
 
+Another common cause of flaky tests is race conditions in our code, such as a shared mutable global variable.
+<br/>
+<br/>
+
+Clearly when this is the case, we should not be wrapping a flaky test in `eventually` -  we should fix the bug instead.
+
+
 
 ## Learning Resources
 
