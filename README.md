@@ -851,9 +851,9 @@ And in some cases this is the right thing to do. For instance, if we are running
 In this situation we have no control over how long will it take for the message to get consumed. Eventually, it should happen, so we shall keep running our test until it succeeds:
 
 ```kotlin
-publishMessage
+publishTestMessage()
 eventually(5.seconds) {
-  verifyThatMessageCOnsumed()
+  verifyThatMessageConsumedCorrectly()
 }
 ```
 
