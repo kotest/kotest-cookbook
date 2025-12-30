@@ -876,7 +876,9 @@ Another common cause of flaky tests is race conditions in our code, such as a sh
 
 Clearly when this is the case, we should not be wrapping a flaky test in `eventually` -  we should fix the bug instead.
 
+### Race Conditions Between Tests
 
+Just like our code, our tests may share something
 
 ## Learning Resources
 
