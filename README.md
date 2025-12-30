@@ -869,6 +869,7 @@ Our code might fail to corretly account for all edge cases, and as a result our 
 * on Feb 29th
 * on the day or week when the time changes to or from daylight savings
 * when a method starts running on one day, hour, or minute, and completes on the next time period
+* when the timezone is not what the author of the code had in mind
 
 Another common cause of flaky tests is race conditions in our code, such as a shared mutable global variable.
 <br/>
@@ -927,6 +928,9 @@ If, however, more than one such test suite runs at the same time, and they modif
 <br/>
 <br/>
 As it might not be very practical to stand up a fresh database for each test, we may use `@Isolate` annotation to make sure that different test suites that can collide never run at the same time, as is shown in this example.
+<br/>
+<br/>
+**Caution:** we need to be very careful when using `@Isolate` - tests might be flaky because of race conditions in the code being tested, not in our tests. And if that is the case, then we should be using `@Isolate` - we should fix those race conditions instead.
 
 ## Learning Resources
 
