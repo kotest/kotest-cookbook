@@ -913,6 +913,21 @@ If, however, we inject the clock as a dependency, we no longer need to mock a st
 
 #### Serializing Tests Prone To Race Conditions
 
+Suppose that our tests are using a Posgres database running in Docker container, and that every test suite does the following:
+
+* delete all data from some tables
+* populate them with test data
+* if we are testing modifications, run them
+* run assertions agaist those tables
+
+Suppose also that when each test quite runs on its own, it always succeeds.
+<br/>
+<br/>
+If, however, more than one such test suite runs at the same time, and they modify the same tables, clearly some tests might break.
+<br/>
+<br/>
+As it might not be very practical to stand up a fresh database for each test, we may use `@Isolate` annotation to make sure that different test suites that can collide never run at the same time, as is shown in this example.
+
 ## Learning Resources
 
 - [Kotest Documentation](https://kotest.io/)
