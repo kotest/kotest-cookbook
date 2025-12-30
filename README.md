@@ -878,7 +878,25 @@ Clearly when this is the case, we should not be wrapping a flaky test in `eventu
 
 ### Race Conditions Between Tests
 
-Just like our code, our tests may share something
+Just like our code, our tests may share something mutable, causing tests to fail intermittently. And sometimes we might stop sharing a mutable, providing each test suite with its own copy. Suppose, for example, that different test suites are sharing the following mock:
+
+```kotlin
+val mockService = run {
+  val ret = mockk<MyService>()
+  every { myService.myMethod() } returns 42
+  ret
+}
+```
+
+Instead of keeping this mock in a shared global variable, we can expose a function that creates a fresh copy every time it is invoked:
+
+```kotlin
+fun getMockService() = run {
+  val ret = mockk<MyService>()
+  every { myService.myMethod() } returns 42
+  ret
+}
+```
 
 ## Learning Resources
 
