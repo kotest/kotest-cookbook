@@ -932,6 +932,18 @@ As it might not be very practical to stand up a fresh database for each test, we
 <br/>
 **Caution:** we need to be very careful when using `@Isolate` - tests might be flaky because of race conditions in the code being tested, not in our tests. And if that is the case, then we should be using `@Isolate` - we should fix those race conditions instead.
 
+### Coroutines And Flaky Tests
+
+TODO:
+
+## High-Maintenance Tests
+
+A test might be working perfectly for years, and then all of a sudden stop working after some seemingly unrelated change.
+Or we might make a code change in a few minutes, and then spend hours fixing the tests.
+So let's discuss a few straightforward steps than make it easier to maintain tests.
+
+### Test The Requirements, Not The Outcome of Current Implementation
+
 ## Learning Resources
 
 - [Kotest Documentation](https://kotest.io/)
