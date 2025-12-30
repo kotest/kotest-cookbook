@@ -888,6 +888,10 @@ val mockService = run {
 }
 ```
 
+If these different test suites run in parallel, they can override each others' call stats and stub values, resulting in failing tests. This is easy to reproduce using kotest's own `parallelRunner`, as is shown in this test.
+
+#### Designing Away Race Conditions Between Tests
+
 Instead of keeping this mock in a shared global variable, we can expose a function that creates a fresh copy every time it is invoked:
 
 ```kotlin
@@ -897,6 +901,17 @@ fun getMockService() = run {
   ret
 }
 ```
+
+#### Designing Away The Need To Mock Static Functions
+
+While we can provide each test suite with a fresh copy of a mock object, this cannot work if we need to mock a static function such as `Instant.now()` or 'LocalDate.now()`. Whenever we mock such a static function, the whole JVM is affected, potentially breaking other tests running in parallel. 
+This is a working example of this behavior.
+<br/>
+<br/>
+If, however, we inject the clock as a dependency, we no longer need to mock a static function, as is shown in this example.
+
+
+#### Serializing Tests Prone To Race Conditions
 
 ## Learning Resources
 
