@@ -862,6 +862,15 @@ In this case `eventually` is a perfect tool for the task at hand. It will keep t
 <br/>
 However, every time we are wrapping a flaky test in `eventually` we need to understand why the test is flaky. And in many cases we should consider other alternatives.
 
+### Flaky Test May Indicate A Bug In Our Code
+
+Our code might fail to corretly account for all edge cases, and as a result our unit tests may be intermittently failing. For instance, this might be happening if our code is deailing with dates and times, and we are not injecting the clock, but directly invoking methods such as `Instant.now()` or `LocalDate.now()`. Examples of such bugs include code that produces incorrect results in the following cases:
+
+* on Feb 29th
+* on the day or week when the time changes to or from daylight savings
+* when a method starts running on one day, hour, or minute, and completes on the next time period
+
+
 ## Learning Resources
 
 - [Kotest Documentation](https://kotest.io/)
