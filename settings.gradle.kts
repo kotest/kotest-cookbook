@@ -1,8 +1,11 @@
 pluginManagement {
     repositories {
-        maven {
-            url = uri("https://binrepo.target.com/artifactory/plugins-gradle")
+        providers.gradleProperty("targetPluginRepositoryUrl").orNull?.let { repositoryUrl ->
+            maven {
+                url = uri(repositoryUrl)
+            }
         }
+        gradlePluginPortal()
     }
 }
 
