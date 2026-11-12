@@ -1,5 +1,5 @@
 plugins {
-    kotlin("jvm") version "2.2.0"
+    kotlin("jvm") version "2.3.0"
     `maven-publish`
 }
 
@@ -7,7 +7,9 @@ group = "io.kotest"
 version = "1.0.0-SNAPSHOT"
 
 repositories {
-    mavenCentral()
+    maven {
+        url = uri("https://binrepo.target.com/artifactory/maven-central")
+    }
 }
 
 dependencies {
@@ -21,7 +23,7 @@ dependencies {
 }
 
 kotlin {
-    jvmToolchain(21)
+    jvmToolchain(25)
 }
 
 tasks.withType<Test>().configureEach {
