@@ -828,6 +828,35 @@ We shall discuss it more in the chapter about flaky tests.
 The gist of this chapter was to show use cases when test doubles really shine, not to discourage using mocks altogether.
 Mocking libraries such as `mockk` are massively powerful and useful, but we are suggesting to complement them with test doubles in functional programming, especially in more difficult situations.
 
+## Reproducing Race Conditions
+
+Every time our code deals with something that is both shared and mutable, we might encounter race conditions. 
+Whenever this is the case, we might have code that passes all unit tests with flying colors, but intermittently fails in production because concurrency.
+Generally, discovering and reproducing such problems is not that simple, and this is where Kotest's `runInParallel` comes in very handy.
+<br/>
+Disclaimer: if we are testing race conditions entirely in JVM, [lincheck library by JetBrains is the tool to use](https://github.com/JetBrains/lincheck)
+<br/>
+In this chapter we shall be discussing race conditions that involve a non-JVM component, such as a database.
+<br/>
+Suppose, for example, that we are selling tickets, using a database as the source of truth, as follows:
+
+* Lookup in the database which seats are still available - definitely a thread-safe operation.
+* Make a decision which seat to buy.
+* Persist the decision in the database - also clearly a thread-safe operation.
+
+Even though we are using thread-safe operations for both reads and writes, the whole process is not thread-safe, 
+because if we are not careful, two threads can read the same data at the same time, make the same decision, and then persist the same decision.  
+Congratulations! We have just sold one slot twice.
+<br/>
+<br/>
+### This Code Is Not Thread-Safe
+
+### Let's Reproduce The Bug
+
+### Let's Fix The Bug
+
+### Let's Test The Fix
+
 ## Learning Resources
 
 - [Kotest Documentation](https://kotest.io/)
