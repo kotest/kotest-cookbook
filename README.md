@@ -21,6 +21,11 @@ Surely it can handle almost anything, but for better results we typically go for
     * [Using Fakery To Cancel A Long-Running Loop](#using-fakery-to-cancel-a-long-running-loop)
     * [Using Fakery To Test Rate Limiter](#using-fakery-to-test-rate-limiter)
     * [Test Doubles Are Cool, But Don't Overdo It](#test-doubles-are-cool-but-dont-overdo-it)
+  * [Reproducing Race Conditions](#reproducing-race-conditions)
+    * [This Code Is Not Thread-Safe](#this-code-is-not-thread-safe)
+    * [Let's Reproduce The Bug](#lets-reproduce-the-bug)
+    * [Let's Fix The Bug](#lets-fix-the-bug)
+    * [Let's Test The Fix](#lets-test-the-fix)
   * [Learning Resources](#learning-resources)
   * [Contributing](#contributing)
   * [License](#license)
@@ -840,15 +845,16 @@ In this chapter we shall be discussing race conditions that involve a non-JVM co
 <br/>
 Suppose, for example, that we are selling tickets, using a database as the source of truth, as follows:
 
-* Lookup in the database which seats are still available - definitely a thread-safe operation.
-* Make a decision which seat to buy.
+* Lookup in the database which seats are available - definitely a thread-safe operation.
+* Make a decision to buy an available seat.
 * Persist the decision in the database - also clearly a thread-safe operation.
 
 Even though we are using thread-safe operations for both reads and writes, the whole process is not thread-safe, 
-because if we are not careful, two threads can read the same data at the same time, make the same decision, and then persist the same decision.  
+because if we are not careful, two threads can read the same data at the same time, make the same decision, and then persist the same decision... 
 Congratulations! We have just sold one slot twice.
 <br/>
 <br/>
+
 ### This Code Is Not Thread-Safe
 
 ### Let's Reproduce The Bug
