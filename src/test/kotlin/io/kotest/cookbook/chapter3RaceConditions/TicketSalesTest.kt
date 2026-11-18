@@ -33,10 +33,15 @@ class TicketSalesTest : StringSpec() {
                 .intersect(boughtBySecondAgent.map { it.seat }.toSet())
             println("Duplicates count: ${duplicates.size}")
             println(duplicates)
+            // occasionally, there will be no duplicates, but usually there are some
+            // typical output, which will vary from run to run:
+            // Duplicates count: 23
+            // [0, 40, 44, 50, 51, 52, 72, 78, 104, 111, 113, 122, 559, 1040, 1184, 1395, 2013, 2097, 2848, 6472, 7973, 8027, 9791]
         }
     }
 }
 
+// this class is deliberately not thread-safe
 private data class Ticket(
     val seat: Int,
 ) {
